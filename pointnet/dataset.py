@@ -114,7 +114,7 @@ class ShapeNetDataset(data.Dataset):
         #print(point_set.shape, seg.shape)
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
-        #resample
+        #resample (instead of taking all the points take only a selected number of ponits, default 2500 points)
         point_set = point_set[choice, :]
 
         point_set = point_set - np.expand_dims(np.mean(point_set, axis = 0), 0) # center
