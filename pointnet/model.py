@@ -127,24 +127,46 @@ class PointNetfeat(nn.Module):
             return torch.cat([x, pointfeat], 1), trans, trans_feat
 
 class PointNetCls(nn.Module):
+    #k is the no. of classes
     def __init__(self, k=2, feature_transform=False):
         super(PointNetCls, self).__init__()
         self.feature_transform = feature_transform
         self.feat = PointNetfeat(global_feat=True, feature_transform=feature_transform)
-        self.fc1 = nn.Linear(1024, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, k)
-        self.dropout = nn.Dropout(p=0.3)
-        self.bn1 = nn.BatchNorm1d(512)
-        self.bn2 = nn.BatchNorm1d(256)
-        self.relu = nn.ReLU()
+        #self.fc1 = nn.Linear(1024, 512)
+        #self.fc2 = nn.Linear(512, 256)
+        #self.fc3 = nn.Linear(256, k)
+        #self.dropout = nn.Dropout(p=0.3)
+        #self.bn1 = nn.BatchNorm1d(512)
+        #self.bn2 = nn.BatchNorm1d(256)
+        #self.relu = nn.ReLU()
 
     def forward(self, x):
         x, trans, trans_feat = self.feat(x)
-        x = F.relu(self.bn1(self.fc1(x)))
-        x = F.relu(self.bn2(self.dropout(self.fc2(x))))
-        x = self.fc3(x)
-        return F.log_softmax(x, dim=1), trans, trans_feat
+        #x = F.relu(self.bn1(self.fc1(x)))
+        #x = F.relu(self.bn2(self.dropout(self.fc2(x))))
+        #x = self.fc3(x)
+        return x, trans, trans_feat
+
+#the siamese network module
+class pointNetSiamese(nn.Module):
+    def __init__(self):
+        super(pointNetSiamese, self).__init__()
+        self.cls = PointNetCls()
+        self.linear = nn.linear(1024, 2)
+
+    def forward(self, data):
+        #data contains the two inputs
+        #both inputs pass through the pointnetcls module
+        res = []
+        for i in range(2):
+            x = data[i]
+            x, trans, trans_feat = self.cls(x)
+            res.append(F.relu(x))
+        
+        res = torch.abs(res[1] - res[0])
+        res = self.linear(res)
+        return res, trans, trans_feat
+
 
 
 class PointNetDenseCls(nn.Module):
