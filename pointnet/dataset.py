@@ -56,7 +56,7 @@ def gen_modelnet_id(root):
 class ShapeNetDataset(data.Dataset):
     def __init__(self,
                  root,
-                 npoints=2500,
+                 npoints=1000,
                  classification=False,
                  class_choice=None,
                  split='train',
@@ -106,18 +106,53 @@ class ShapeNetDataset(data.Dataset):
         self.num_seg_classes = self.seg_classes[list(self.cat.keys())[0]]
         print(self.seg_classes, self.num_seg_classes)
 
-    def __getitem__(self, index):
-        fn = self.datapath[index]
-        cls = self.classes[self.datapath[index][0]]
+        #create point cloud triplets
+        triplet_set, target_set = [], []
+        for cloud_index in range(len(self.datapath)):
+            point_sets = []
+
+            #load first point cloud
+            if self.classification:
+                initial_point_set, initial_class = self.datapath(cloud_index), self.classes[self.datapath[cloud_index][0]]
+            point_sets.append(initial_point_set)
+
+            #load positive example (random point cloud from same class)
+            random_choice1 = np.random.choice(len(self.datapath))
+            while (self.classes[self.datapath[random_choice1][0]] != initial_class) and (random_choice1 != cloud_index) :
+                random_choice1 = np.random.choice(len(self.datapath))
+            positive_example = self.datapath(random_choice1)
+            point_sets.append(positive_example)
+
+            #load negative example (random point cloud from different class)
+            random_choice2 = np.random.choice(len(self.datapath))
+            while (self.classes)[self.datapath[random_choice2][0]] == initial_class:
+                random_choice2 = np.random.choice(len(self.datapath))
+            negative_example = self.datapath(random_choice2)
+            point_sets.append(negative_example)
+
+            triplet_set.append(point_sets) #should this be torch.stack'ed?
+            target_set.append([1,0])
+        
+        target_set = torch.tensor(self,target_set)
+            
+        print (len(triplet_set))
+        print (len(target_set))
+
+
+    #return one processed point cloud from triplet, cloud should be in 0->2
+    def get_single_cloud(self, index, cloud):
+        fn = self.triplet_set[index][cloud]
+        #cls = self.classes[self.datapath[index][0]]
         point_set = np.loadtxt(fn[1]).astype(np.float32)
-        seg = np.loadtxt(fn[2]).astype(np.int64)
+        #seg = np.loadtxt(fn[2]).astype(np.int64)
         #print(point_set.shape, seg.shape)
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
-        #minimum size is 1000
-        #resample (instead of taking all the points take only a selected number of ponits, default 2500 points)
+        #minimum size of our i/p is 1000
+        #resample (instead of taking all the points take only a selected number of points, default 1000 points)
         point_set = point_set[choice, :]
 
+        #center and scale the point cloud
         point_set = point_set - np.expand_dims(np.mean(point_set, axis = 0), 0) # center
         dist = np.max(np.sqrt(np.sum(point_set ** 2, axis = 1)),0)
         point_set = point_set / dist #scale
@@ -128,18 +163,28 @@ class ShapeNetDataset(data.Dataset):
             point_set[:,[0,2]] = point_set[:,[0,2]].dot(rotation_matrix) # random rotation
             point_set += np.random.normal(0, 0.02, size=point_set.shape) # random jitter
 
-        seg = seg[choice]
+        #seg = seg[choice]
         point_set = torch.from_numpy(point_set)
-        seg = torch.from_numpy(seg)
-        cls = torch.from_numpy(np.array([cls]).astype(np.int64))
+        #seg = torch.from_numpy(seg)
+        #cls = torch.from_numpy(np.array([cls]).astype(np.int64))
 
         if self.classification:
-            return point_set, cls
+            return point_set#, cls
         else:
-            return point_set, seg
+            return point_set#, seg
+
+
+    def __getitem__(self, index):
+        point_sets = []
+        for i in range (3):
+            point_sets.append(self.get_single_cloud(index, i))
+        
+        point_sets = torch.stack(point_sets)
+        target = self.target_set[index]
+        return point_sets, target
 
     def __len__(self):
-        return len(self.datapath)
+        return len(self.triplet_set)
 
 class ModelNetDataset(data.Dataset):
     def __init__(self,

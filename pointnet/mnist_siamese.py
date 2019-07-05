@@ -137,7 +137,8 @@ class BalancedMNISTPair(torch.utils.data.Dataset):
          imgs, target = self.train_data[index], self.train_labels[index]
       else:
          imgs, target = self.test_data[index], self.test_labels[index]
-         
+      
+      #convert numpy arrays into images   
       img_ar = []
       for i in range(len(imgs)):
          img = Image.fromarray(imgs[i].numpy(), mode='L')

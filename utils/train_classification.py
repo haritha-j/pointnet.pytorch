@@ -101,9 +101,17 @@ def main():
     for epoch in range(opt.nepoch):
         scheduler.step()
         for i, data in enumerate(dataloader, 0):
+            #check the contents of data
+            print ("data")
+            print (len(data))
+            print(data)
             points, target = data
+            print ("target")
+            print (len(target))
             target = target[:, 0]
-            points = points.transpose(2, 1)
+            print ("points")
+            print (len(points))
+            points = points.transpose(2, 1) #why transpose?
             points, target = points.cuda(), target.cuda()
             optimizer.zero_grad()
             classifier = classifier.train()
