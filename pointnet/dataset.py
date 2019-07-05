@@ -107,36 +107,34 @@ class ShapeNetDataset(data.Dataset):
         print(self.seg_classes, self.num_seg_classes)
 
         #create point cloud triplets
-        triplet_set, target_set = [], []
+        self.triplet_set, self.target_set = [], []
         for cloud_index in range(len(self.datapath)):
             point_sets = []
 
             #load first point cloud
             if self.classification:
-                initial_point_set, initial_class = self.datapath(cloud_index), self.classes[self.datapath[cloud_index][0]]
+                initial_point_set, initial_class = self.datapath[cloud_index], self.classes[self.datapath[cloud_index][0]]
             point_sets.append(initial_point_set)
 
             #load positive example (random point cloud from same class)
             random_choice1 = np.random.choice(len(self.datapath))
             while (self.classes[self.datapath[random_choice1][0]] != initial_class) and (random_choice1 != cloud_index) :
                 random_choice1 = np.random.choice(len(self.datapath))
-            positive_example = self.datapath(random_choice1)
+            positive_example = self.datapath[random_choice1]
             point_sets.append(positive_example)
 
             #load negative example (random point cloud from different class)
             random_choice2 = np.random.choice(len(self.datapath))
             while (self.classes)[self.datapath[random_choice2][0]] == initial_class:
                 random_choice2 = np.random.choice(len(self.datapath))
-            negative_example = self.datapath(random_choice2)
+            negative_example = self.datapath[random_choice2]
             point_sets.append(negative_example)
 
-            triplet_set.append(point_sets) #should this be torch.stack'ed?
-            target_set.append([1,0])
+            self.triplet_set.append(point_sets) #should this be torch.stack'ed?
+            self.target_set.append([1,0])
         
-        target_set = torch.tensor(self,target_set)
-            
-        print (len(triplet_set))
-        print (len(target_set))
+        self.target_set = torch.tensor(self.target_set)
+
 
 
     #return one processed point cloud from triplet, cloud should be in 0->2
@@ -144,7 +142,7 @@ class ShapeNetDataset(data.Dataset):
         fn = self.triplet_set[index][cloud]
         #cls = self.classes[self.datapath[index][0]]
         point_set = np.loadtxt(fn[1]).astype(np.float32)
-        #seg = np.loadtxt(fn[2]).astype(np.int64)
+        seg = np.loadtxt(fn[2]).astype(np.int64)
         #print(point_set.shape, seg.shape)
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)

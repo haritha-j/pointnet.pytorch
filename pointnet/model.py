@@ -149,19 +149,21 @@ class PointNetCls(nn.Module):
 
 #the siamese network module
 class pointNetSiamese(nn.Module):
-    def __init__(self):
+    def __init__(self, k=2, feature_transform=False):
         super(pointNetSiamese, self).__init__()
         self.cls = PointNetCls()
-        self.linear = nn.linear(1024, 2)
+        self.linear = nn.Linear(1024, 2) #why is there two ouputs instead of one (paper has one output)?
 
     def forward(self, data):
         #data contains the two inputs
         #both inputs pass through the pointnetcls module
         res = []
         for i in range(2):
-            x = data[i]
-            x, trans, trans_feat = self.cls(x)
-            res.append(F.relu(x))
+            x = data[:,:,i]
+            #print ("X")
+            #print(x.shape)
+            x, trans, trans_feat = self.cls(x) 
+            res.append(F.relu(x)) #sigmoid is used in the original paper
         
         res = torch.abs(res[1] - res[0])
         res = self.linear(res)

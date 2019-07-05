@@ -7,7 +7,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
-from pointnet.model import PointNetCls, feature_transform_regularizer
+from pointnet.model import pointNetSiamese, feature_transform_regularizer
 import torch.nn.functional as F
 from tqdm import tqdm
 
@@ -17,7 +17,7 @@ def main():
     parser.add_argument(
         '--batchSize', type=int, default=32, help='input batch size')
     parser.add_argument(
-        '--num_points', type=int, default=2500, help='input batch size')
+        '--num_points', type=int, default=1000, help='input batch size')
     parser.add_argument(
         '--workers', type=int, help='number of data loading workers', default=4)
     parser.add_argument(
@@ -86,7 +86,7 @@ def main():
     except OSError:
         pass
 
-    classifier = PointNetCls(k=num_classes, feature_transform=opt.feature_transform)
+    classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
 
     if opt.model != '':
         classifier.load_state_dict(torch.load(opt.model))
@@ -100,43 +100,75 @@ def main():
 
     for epoch in range(opt.nepoch):
         scheduler.step()
-        for i, data in enumerate(dataloader, 0):
+        accurate_labels = 0
+        all_labels = 0
+        for i, data in enumerate(dataloader, 0):    
             #check the contents of data
-            print ("data")
-            print (len(data))
-            print(data)
             points, target = data
-            print ("target")
-            print (len(target))
-            target = target[:, 0]
-            print ("points")
-            print (len(points))
-            points = points.transpose(2, 1) #why transpose?
-            points, target = points.cuda(), target.cuda()
+            #print ("target")
+            #print (target.shape)
+            #print ("points")
+            #print (points.shape)
+            points = points.transpose(3, 2) #transpose batch dimension with point dimension
+            #print("points transposed")
+            #print (points.shape)
+            points_positive = points[:,:,:2]
+            points_negative = points[:,:,0:3:2]
+            target_positive = torch.squeeze(target[:,0])
+            target_negative = torch.squeeze(target[:,1])
+            points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
+            target_negative, target_positive = target_negative.cuda(), target_positive.cuda()
+            
             optimizer.zero_grad()
             classifier = classifier.train()
-            pred, trans, trans_feat = classifier(points)
-            loss = F.nll_loss(pred, target)
+            pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
+            pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
+
+            loss_positive = F.cross_entropy(pred_positive, target_positive)
+            loss_negative = F.cross_entropy(pred_negative, target_negative)
+            loss = loss_negative + loss_positive
+            #loss = F.nll_loss(pred, target)
+            
             if opt.feature_transform:
                 loss += feature_transform_regularizer(trans_feat) * 0.001
             loss.backward()
             optimizer.step()
-            pred_choice = pred.data.max(1)[1]
-            correct = pred_choice.eq(target.data).cpu().sum()
-            print('[%d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), correct.item() / float(opt.batchSize)))
+
+            #check accuracy
+            accurate_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
+            accurate_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
+            accurate_labels = accurate_labels + accurate_labels_positive + accurate_labels_negative
+            all_labels = all_labels + len(target_positive) + len(target_negative)
+            print("epoch ", epoch, " i ", i)
+            #pred_choice = pred.data.max(1)[1]
+            #correct = pred_choice.eq(target.data).cpu().sum()
+            #print('[%d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), correct.item() / float(opt.batchSize)))
 
             if i % 100 == 0:
                 j, data = next(enumerate(testdataloader, 0))
                 points, target = data
-                target = target[:, 0]
-                points = points.transpose(2, 1)
-                points, target = points.cuda(), target.cuda()
+                points = points.transpose(3, 2)
+                points_positive = points[:,:,:2]
+                points_negative = points[:,:,0:3:2]
+                target_positive = torch.squeeze(target[:,0])
+                target_negagtive = torch.squeeze(target[:,1])
+                points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
+                target_negagtive, target_positive = target_negagtive.cuda(), target_positive.cuda()
+                
                 classifier = classifier.eval()
-                pred, _, _ = classifier(points)
-                loss = F.nll_loss(pred, target)
-                pred_choice = pred.data.max(1)[1]
-                correct = pred_choice.eq(target.data).cpu().sum()
-                print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
+                pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
+                pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
+                loss_positive = F.cross_entropy(pred_positive, target_positive)
+                loss_negative = F.cross_entropy(pred_negative, target_negagtive)
+                loss = loss_negative + loss_positive
+
+                #pred_choice = pred.data.max(1)[1]
+                #correct = pred_choice.eq(target.data).cpu().sum()
+                #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
+
+                #print accuracy
+                accuracy = 100. * accurate_labels / all_labels
+                print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
 
         torch.save(classifier.state_dict(), '%s/cls_model_%d.pth' % (opt.outf, epoch))
 
@@ -149,10 +181,10 @@ def main():
         points, target = points.cuda(), target.cuda()
         classifier = classifier.eval()
         pred, _, _ = classifier(points)
-        pred_choice = pred.data.max(1)[1]
-        correct = pred_choice.eq(target.data).cpu().sum()
-        total_correct += correct.item()
-        total_testset += points.size()[0]
+        #pred_choice = pred.data.max(1)[1]
+        #correct = pred_choice.eq(target.data).cpu().sum()
+        #total_correct += correct.item()
+        #total_testset += points.size()[0]
 
     print("final accuracy {}".format(total_correct / float(total_testset)))
 
