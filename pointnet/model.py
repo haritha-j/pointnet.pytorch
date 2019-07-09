@@ -159,7 +159,7 @@ class pointNetSiamese(nn.Module):
         #both inputs pass through the pointnetcls module
         res = []
         for i in range(2):
-            x = data[:,:,i]
+            x = data[:,i]
             #print ("X")
             #print(x.shape)
             x, trans, trans_feat = self.cls(x) 

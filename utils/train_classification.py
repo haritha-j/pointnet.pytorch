@@ -107,18 +107,19 @@ def main():
             points, target = data
             #print ("target")
             #print (target.shape)
-            #print ("points")
-            #print (points.shape)
-            points = points.transpose(3, 2) #transpose batch dimension with point dimension
-            #print("points transposed")
-            #print (points.shape)
-            points_positive = points[:,:,:2]
-            points_negative = points[:,:,0:3:2]
+            print ("points")
+            print (points.shape)
+            points = points.transpose(3, 2) #transpose xyz dimension with point dimension
+            print("points transposed")
+            print (points.shape)
+            points_positive = points[:,:2]
+            points_negative = points[:,0:3:2]
             target_positive = torch.squeeze(target[:,0])
             target_negative = torch.squeeze(target[:,1])
             points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
             target_negative, target_positive = target_negative.cuda(), target_positive.cuda()
-            
+            #print("input to network", points_positive.shape)
+
             optimizer.zero_grad()
             classifier = classifier.train()
             pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
@@ -148,13 +149,14 @@ def main():
                 j, data = next(enumerate(testdataloader, 0))
                 points, target = data
                 points = points.transpose(3, 2)
-                points_positive = points[:,:,:2]
-                points_negative = points[:,:,0:3:2]
+                points_positive = points[:,:2]
+                points_negative = points[:,0:3:2]
                 target_positive = torch.squeeze(target[:,0])
                 target_negagtive = torch.squeeze(target[:,1])
                 points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
                 target_negagtive, target_positive = target_negagtive.cuda(), target_positive.cuda()
                 
+                #print("shape of input", points_positive.shape)
                 classifier = classifier.eval()
                 pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
                 pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
@@ -186,7 +188,7 @@ def main():
         #total_correct += correct.item()
         #total_testset += points.size()[0]
 
-    print("final accuracy {}".format(total_correct / float(total_testset)))
+    #print("final accuracy {}".format(total_correct / float(total_testset)))
 
 if __name__ == '__main__':
     main()  
