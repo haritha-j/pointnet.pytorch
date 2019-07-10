@@ -3,16 +3,21 @@ import argparse
 import os
 import random
 import torch
+from pointnet.info3d import *
 import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
 from pointnet.model import pointNetSiamese, feature_transform_regularizer
+from pointnet.dataset_holo import HololensDataset
 import torch.nn.functional as F
 from tqdm import tqdm
 
 
 def main():
+
+    rotate = True
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--batchSize', type=int, default=32, help='input batch size')
@@ -49,7 +54,7 @@ def main():
             classification=True,
             split='test',
             npoints=opt.num_points,
-            data_augmentation=False)
+            data_augmentation=True)
     elif opt.dataset_type == 'modelnet40':
         dataset = ModelNetDataset(
             root=opt.dataset,
@@ -61,6 +66,19 @@ def main():
             split='test',
             npoints=opt.num_points,
             data_augmentation=False)
+    elif opt.dataset_type == 'hololens':
+        dataset = HololensDataset(
+            root=opt.dataset,
+            npoints=opt.num_points,
+            split='train',
+            ransac_iterations=50
+        )
+        test_dataset = HololensDataset(
+            root=opt.dataset,
+            npoints=opt.num_points,
+            split='test',
+            ransac_iterations=50
+        )
     else:
         exit('wrong dataset type')
 
@@ -109,6 +127,14 @@ def main():
             #print (target.shape)
             print ("points")
             print (points.shape)
+            #if rotation is enabled, rotate positive and negative examples before starting training
+            if rotate:
+                for cloud in points:
+                    randomTheta = (2*np.pi)/(random.randint(0,360))
+                    axis == random.randint(1,3)
+                    cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
+                    cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
+
             points = points.transpose(3, 2) #transpose xyz dimension with point dimension
             print("points transposed")
             print (points.shape)

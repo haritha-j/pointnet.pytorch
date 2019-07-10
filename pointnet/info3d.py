@@ -252,6 +252,18 @@ def getQuantizedCenteredPointCollection(centeredPointCollection_,resolution = 20
 
 # Rotations!
 
+#rotate an individual point cloud
+def rotatePointCloud(pointCloud, theta = (np.pi)/3, axis = 1):
+    axis_index = np.delete([0,1,2],axis)
+    n_pointCloud = np.copy(pointCloud)  
+    # Rotate about the vertical axis (y, or axis=1)
+    n_pointCloud[:,axis_index[0]] = pointCloud[:,axis_index[0]]*np.cos(theta) - pointCloud[:,axis_index[1]]*np.sin(theta)
+    n_pointCloud[:,axis_index[1]] = pointCloud[:,axis_index[0]]*np.sin(theta) + pointCloud[:,axis_index[1]]*np.cos(theta)
+    n_pointCloud[:,axis_index[0]+3] = pointCloud[:,axis_index[0]+3]*np.cos(theta) - pointCloud[:,axis_index[1]+3]*np.sin(theta)
+    n_pointCloud[:,axis_index[1]+3] = pointCloud[:,axis_index[0]+3]*np.sin(theta) + pointCloud[:,axis_index[1]+3]*np.cos(theta) 
+    return n_pointCloud
+
+
 def rotatePointCollection(point_collection, theta = (np.pi)/3, axis = 1, verbose = False):# Angle of rotation
     # default theta is 60 degrees
     
@@ -577,7 +589,6 @@ def getPartialPointCloud(
 
 def getRansacPlanes(
     pointCloud,
-    triangles,
     planes_to_find = 30, # number of planes to find
     threshold = 0.05,     # the point-plane distance threshold
     trials = 100,       # the number of RANSAC trials

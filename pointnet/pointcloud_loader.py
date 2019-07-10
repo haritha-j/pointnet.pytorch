@@ -23,27 +23,7 @@ from pointnet.dataset import ShapeNetDataset, ModelNetDataset
 from pointnet.model import pointNetSiamese, feature_transform_regularizer
 import torch.nn.functional as F
 from tqdm import tqdm
-
-
-#loading pickled point cloud collection
-def load(filename):
-    with open(filename,'rb') as f: 
-        centered_point_collection = pickle.load(f)
-       
-    print(len(centered_point_collection))
-
-    points_only_collection = []
-    for label, pointCloud, triangles in centered_point_collection:
-        #remove normals
-        #points_only_collection.append(pointCloud[:,:3])
-        
-        print(label)
-        print(pointCloud.shape)
-        print(triangles.shape)
-
-    print(len(points_only_collection))
-    
-    return centered_point_collection
+from dataset_holo import *
 
 def main():
     threshold = 30
@@ -69,8 +49,9 @@ def main():
     rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
     #load model
     classifier = pointNetSiamese(k=10, feature_transform=opt.feature_transform)#k is the number of classes in the training dataset
-    classifier.load_state_dict(torch.load(opt.model))
-    classifier.cuda()
+    
+    classifier.load_state_dict(torch.load(opt.model, map_location=device))
+    #classifier.cuda()
     classifier.eval()
 
     correct = 0
