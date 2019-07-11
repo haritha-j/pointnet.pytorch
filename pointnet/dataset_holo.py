@@ -38,13 +38,19 @@ class HololensDataset(data.Dataset):
         self.split =split
 
         self.pointcloudCollection = load(self.root)
+        print("length", len(self.pointcloudCollection))
+        narray = np.array(self.pointcloudCollection)
+        print (narray.shape)
 
         #for each point cloud, create a number of examples by applying ransac.
         ransacCollection = []
         for location in self.pointcloudCollection:
             ransacCollectionForLocation = []
-            for i in range ransac_iterations:
-                ransacCloud, _ = getRansacPlanes(location, )
+            for i in range (ransac_iterations):
+                ransacCloud, _ = getRansacPlanes(location)
+                ransacCollection.append(ransacCloud)
+            ransacCollection.append(ransacCollectionForLocation)
+        
 
 
     #return one processed point cloud from triplet, cloud should be in 0->2
