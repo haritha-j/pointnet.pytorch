@@ -33,7 +33,13 @@ def load(filename):
 
 
 class HololensDataset(data.Dataset):
-    def __init__(self, split, npoints=1000, root='point_collection/all_point_collection.pickle', ransac_iterations=50):
+    def __init__(self, 
+    split, 
+    npoints=1000, 
+    root='ransac_collection.pickle',
+    ransac_iterations=50, 
+    data_augmentation=True):
+        
         self.npoints = npoints
         self.root = root
         self.split =split
@@ -62,9 +68,10 @@ class HololensDataset(data.Dataset):
                     y = random.randint(0, len(self.pointcloudCollection[x])-1)
                     #add the cloud from the different class to the triplet
                     triplet.append(self.pointcloudCollection[x][y])
+                    self.triplet_set.append(triplet)
                     self.target_set.append([1,0])
         #shuffle the entire dataset, since target_set has the same values, no need to shuffle
-        random.shuffle(triplet_set)    
+        random.shuffle(self.triplet_set)   
                     
 
     #return one processed point cloud from triplet, cloud should be in 0->2
@@ -96,10 +103,7 @@ class HololensDataset(data.Dataset):
         #seg = torch.from_numpy(seg)
         #cls = torch.from_numpy(np.array([cls]).astype(np.int64))
 
-        if self.classification:
-            return point_set#, cls
-        else:
-            return point_set#, seg
+        return point_set
 
 
     def __getitem__(self, index):
@@ -112,4 +116,4 @@ class HololensDataset(data.Dataset):
         return point_sets, target
 
     def __len__(self):
-        return len(self.pointcloudCollection)
+        return len(self.triplet_set)
