@@ -39,17 +39,10 @@ class HololensDataset(data.Dataset):
 
         self.pointcloudCollection = load(self.root)
         print("length", len(self.pointcloudCollection))
-        narray = np.array(self.pointcloudCollection)
-        print (narray.shape)
+        #narray = np.array(self.pointcloudCollection)
+        #print (narray.shape)
 
-        #for each point cloud, create a number of examples by applying ransac.
-        ransacCollection = []
-        for location in self.pointcloudCollection:
-            ransacCollectionForLocation = []
-            for i in range (ransac_iterations):
-                ransacCloud, _ = getRansacPlanes(location)
-                ransacCollection.append(ransacCloud)
-            ransacCollection.append(ransacCollectionForLocation)
+
         
 
 
