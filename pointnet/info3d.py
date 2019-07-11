@@ -255,7 +255,7 @@ def getQuantizedCenteredPointCollection(centeredPointCollection_,resolution = 20
 #rotate an individual point cloud
 def rotatePointCloud(pointCloud, theta = (np.pi)/3, axis = 1):
     axis_index = np.delete([0,1,2],axis)
-    n_pointCloud = np.copy(pointCloud)  
+    n_pointCloud = np.copy(pointCloud)
     # Rotate about the vertical axis (y, or axis=1)
     n_pointCloud[:,axis_index[0]] = pointCloud[:,axis_index[0]]*np.cos(theta) - pointCloud[:,axis_index[1]]*np.sin(theta)
     n_pointCloud[:,axis_index[1]] = pointCloud[:,axis_index[0]]*np.sin(theta) + pointCloud[:,axis_index[1]]*np.cos(theta)
