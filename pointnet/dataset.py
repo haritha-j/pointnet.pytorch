@@ -234,6 +234,7 @@ class ModelNetDataset(data.Dataset):
 
     def __len__(self):
         return len(self.fns)
+        
 
 if __name__ == '__main__':
     dataset = sys.argv[1]

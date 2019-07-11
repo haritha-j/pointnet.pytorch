@@ -10,6 +10,7 @@ import json
 from plyfile import PlyData, PlyElement
 import pickle
 from pointnet.info3d import *
+import random
 
 
 #load pickled point cloud collection
@@ -19,15 +20,15 @@ def load(filename):
        
     print(len(centered_point_collection))
 
-    points_only_collection = []
+    """points_only_collection = []
     for label, pointCloud, triangles in centered_point_collection:
-        #remove normals
-        #points_only_collection.append(pointCloud[:,:3])
+        remove normals
+        points_only_collection.append(pointCloud[:,:3])
         print(label)
         print(pointCloud.shape)
         print(triangles.shape)
 
-    #print(len(points_only_collection))
+    print(len(points_only_collection))"""
     return centered_point_collection
 
 
@@ -38,13 +39,33 @@ class HololensDataset(data.Dataset):
         self.split =split
 
         self.pointcloudCollection = load(self.root)
-        print("length", len(self.pointcloudCollection))
-        #narray = np.array(self.pointcloudCollection)
-        #print (narray.shape)
+        print("length ", len(self.pointcloudCollection))
+        print("sublength ", len(self.pointcloudCollection[0]))
+        #generate thriplets
+        self.triplet_set, self.target_set = [], []
+        for k in range(len(self.pointcloudCollection)):
+            for i in range(len(self.pointcloudCollection[k])):
+                for j in range(len(self.pointcloudCollection[k])):
+                    #ensure that the same cloud doesnt go in as the first two clouds of the triplet
+                    if i == j:
+                        continue
+                    triplet = []
+                    #add the two clouds in the same class to the triplet
+                    triplet.append(self.pointcloudCollection[k][i])
+                    triplet.append(self.pointcloudCollection[k][j])
 
-
-        
-
+                    #pick a random class other than the original class
+                    x = random.randint(0,len(self.pointcloudCollection)-1)
+                    while x == k:
+                        x = random.randint(0,len(self.pointcloudCollection)-1)
+                    #pick a random cloud from the selected random class
+                    y = random.randint(0, len(self.pointcloudCollection[x])-1)
+                    #add the cloud from the different class to the triplet
+                    triplet.append(self.pointcloudCollection[x][y])
+                    self.target_set.append([1,0])
+        #shuffle the entire dataset, since target_set has the same values, no need to shuffle
+        random.shuffle(triplet_set)    
+                    
 
     #return one processed point cloud from triplet, cloud should be in 0->2
     def get_single_cloud(self, index, cloud):
