@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 def main():
 
-    rotate = True
+    rotate = False
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -70,15 +70,14 @@ def main():
         dataset = HololensDataset(
             root=opt.dataset,
             npoints=opt.num_points,
-            split='train',
-            ransac_iterations=50
-        )
+            split='train')
+        
         test_dataset = HololensDataset(
             root=opt.dataset,
             npoints=opt.num_points,
-            split='test',
-            ransac_iterations=50
+            split='test'
         )
+        
     else:
         exit('wrong dataset type')
 
@@ -88,14 +87,14 @@ def main():
         batch_size=opt.batchSize,
         shuffle=True,
         num_workers=int(opt.workers))
-
+    
     testdataloader = torch.utils.data.DataLoader(
             test_dataset,
             batch_size=opt.batchSize,
             shuffle=True,
             num_workers=int(opt.workers))
 
-    print(len(dataset), len(test_dataset))
+    print(len(dataset))
     num_classes = len(dataset.classes)
     print('classes', num_classes)
 
@@ -125,19 +124,19 @@ def main():
             points, target = data
             #print ("target")
             #print (target.shape)
-            print ("points")
-            print (points.shape)
+            #print ("points")
+            #print (points.shape)
             #if rotation is enabled, rotate positive and negative examples before starting training
             if rotate:
                 for cloud in points:
                     randomTheta = (2*np.pi)/(random.randint(0,360))
-                    axis == random.randint(1,3)
+                    axis = random.randint(1,3)
                     cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
                     cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
 
             points = points.transpose(3, 2) #transpose xyz dimension with point dimension
-            print("points transposed")
-            print (points.shape)
+            #print("points transposed")
+            #print (points.shape)
             points_positive = points[:,:2]
             points_negative = points[:,0:3:2]
             target_positive = torch.squeeze(target[:,0])
@@ -199,7 +198,7 @@ def main():
                 print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
 
         torch.save(classifier.state_dict(), '%s/cls_model_%d.pth' % (opt.outf, epoch))
-
+"""
     total_correct = 0
     total_testset = 0
     for i,data in tqdm(enumerate(testdataloader, 0)):
@@ -215,6 +214,6 @@ def main():
         #total_testset += points.size()[0]
 
     #print("final accuracy {}".format(total_correct / float(total_testset)))
-
+"""
 if __name__ == '__main__':
     main()  

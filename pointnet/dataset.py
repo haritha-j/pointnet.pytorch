@@ -143,7 +143,7 @@ class ShapeNetDataset(data.Dataset):
         #cls = self.classes[self.datapath[index][0]]
         point_set = np.loadtxt(fn[1]).astype(np.float32)
         seg = np.loadtxt(fn[2]).astype(np.int64)
-        #print(point_set.shape, seg.shape)
+        print("shapes", point_set.shape, seg.shape)
 
         choice = np.random.choice(len(seg), self.npoints, replace=True)
         #minimum size of our i/p is 1000

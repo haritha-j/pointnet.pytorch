@@ -715,6 +715,7 @@ def getGeneralizedPointCloud(planes,plane_properties):
         triangles = plane_[2]
         refpoint = plane_[3]
 
+        #larger threshold will drop more planes
         if plane_properties[i,1]<0.75*min(np.mean(plane_properties[:,1]),np.median(plane_properties[:,1])):
             continue
 

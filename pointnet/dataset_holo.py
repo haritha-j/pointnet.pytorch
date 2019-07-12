@@ -16,9 +16,9 @@ import random
 #load pickled point cloud collection
 def load(filename):
     with open(filename,'rb') as f: 
-        centered_point_collection = pickle.load(f)
+        point_collection = pickle.load(f)
        
-    print(len(centered_point_collection))
+    print(len(point_collection))
 
     """points_only_collection = []
     for label, pointCloud, triangles in centered_point_collection:
@@ -29,23 +29,30 @@ def load(filename):
         print(triangles.shape)
 
     print(len(points_only_collection))"""
-    return centered_point_collection
+    return point_collection
 
 
 class HololensDataset(data.Dataset):
     def __init__(self, 
     split, 
     npoints=1000, 
-    root='ransac_collection.pickle',
-    ransac_iterations=50, 
+    root='hololens_ransac_dataset.pickle',
     data_augmentation=True):
         
         self.npoints = npoints
         self.root = root
         self.split =split
+        self.data_augmentation = data_augmentation
+        
 
         self.pointcloudCollection = load(self.root)
         print("length ", len(self.pointcloudCollection))
+
+        #create a list of classes using the class indexes
+        self.classes = []
+        for m in range(len(self.pointcloudCollection)):
+            self.classes.append(m)
+
         print("sublength ", len(self.pointcloudCollection[0]))
         #generate thriplets
         self.triplet_set, self.target_set = [], []
@@ -70,19 +77,30 @@ class HololensDataset(data.Dataset):
                     triplet.append(self.pointcloudCollection[x][y])
                     self.triplet_set.append(triplet)
                     self.target_set.append([1,0])
+
+        self.target_set = torch.tensor(self.target_set)
         #shuffle the entire dataset, since target_set has the same values, no need to shuffle
-        random.shuffle(self.triplet_set)   
+        random.shuffle(self.triplet_set)
+
+        #split into training and testing datasets
+        print("triplet set length ", len(self.triplet_set))
+        print("split ", len(self.triplet_set)*9/10)
+        if self.split == 'train':
+            self.triplet_set = self.triplet_set[:int(len(self.triplet_set)*9/10)]
+        else:
+            self.triplet_set = self.triplet_set[int(len(self.triplet_set)*9/10):]
                     
 
     #return one processed point cloud from triplet, cloud should be in 0->2
     def get_single_cloud(self, index, cloud):
         fn = self.triplet_set[index][cloud]
         #cls = self.classes[self.datapath[index][0]]
-        point_set = np.loadtxt(fn[1]).astype(np.float32)
-        seg = np.loadtxt(fn[2]).astype(np.int64)
+        point_set = np.array(fn, dtype=np.float32)
+        #print(point_set.shape)
+        #seg = np.loadtxt(fn[2]).astype(np.int64)
         #print(point_set.shape, seg.shape)
 
-        choice = np.random.choice(len(seg), self.npoints, replace=True)
+        choice = np.random.choice(len(point_set), self.npoints, replace=True)
         #minimum size of our i/p is 1000
         #resample (instead of taking all the points take only a selected number of points, default 1000 points)
         point_set = point_set[choice, :]
