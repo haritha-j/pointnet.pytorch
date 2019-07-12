@@ -29,7 +29,7 @@ def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollectio
 #for each point cloud, create a number of examples by applying ransac.
 def main():
     ransac_iterations = 20
-    point_drop_threshold = 0.2
+    point_drop_threshold = 0.1
     root='../pointnet/point_collection/all_point_collection.pickle'
     pointcloudCollection = load(root)
     print("length", len(pointcloudCollection))
@@ -60,7 +60,7 @@ def main():
         print (len(ransacCollection[0]))
         print (len(ransacCollection[0][0]))
 
-        with open('ransac_dataset.pickle','wb') as f:
+        with open('ransac_dataset_drop_0.1.pickle','wb') as f:
             pickle.dump(ransacCollection,f)
 
 

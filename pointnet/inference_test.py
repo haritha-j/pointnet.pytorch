@@ -27,7 +27,7 @@ from dataset_holo import *
 
 def main():
     threshold = 30
-    check_equal = False
+    check_equal = True
     partial_realease = False
     rotate = False
     partial_release_radius = 4

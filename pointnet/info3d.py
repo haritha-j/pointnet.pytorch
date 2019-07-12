@@ -264,6 +264,15 @@ def rotatePointCloud(pointCloud, theta = (np.pi)/3, axis = 1):
     return n_pointCloud
 
 
+def rotatePointCloudWithoutNormals(pointCloud, theta = (np.pi)/3, axis = 1):
+    axis_index = np.delete([0,1,2],axis)
+    n_pointCloud = np.copy(pointCloud)
+    # Rotate about the vertical axis (y, or axis=1)
+    n_pointCloud[:,axis_index[0]] = pointCloud[:,axis_index[0]]*np.cos(theta) - pointCloud[:,axis_index[1]]*np.sin(theta)
+    n_pointCloud[:,axis_index[1]] = pointCloud[:,axis_index[0]]*np.sin(theta) + pointCloud[:,axis_index[1]]*np.cos(theta)
+    return n_pointCloud
+
+
 def rotatePointCollection(point_collection, theta = (np.pi)/3, axis = 1, verbose = False):# Angle of rotation
     # default theta is 60 degrees
     

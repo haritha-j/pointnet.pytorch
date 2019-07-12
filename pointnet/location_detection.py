@@ -30,7 +30,7 @@ def main():
 
     check_equal = False
     partial_realease = False
-    rotate = False
+    rotate = True
     partial_release_radius = 4
     rotate_theta = 1
 
@@ -38,7 +38,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--num_points', type=int, default=1000, help='input batch size')
-    parser.add_argument('--model', type=str, default='model/siamese_corrected_249.pth', help='model path')
+    parser.add_argument('--model', type=str, default='model/siamese_ransac_holo_rotation_cls_model_19.pth', help='model path')
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
 
     opt = parser.parse_args()
@@ -50,7 +50,7 @@ def main():
     #load model
     classifier = pointNetSiamese(k=10, feature_transform=opt.feature_transform)#k is the number of classes in the training dataset
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
-    #classifier.cuda()
+    classifier.cuda()
     classifier.eval()
 
     correct = 0
@@ -76,11 +76,13 @@ def main():
             
             result = getInferenceScore(points_original, points_new, num_points, device, classifier)
             results.append(result)
-        selection = results.index(min(results))
+        selection = results.index(max(results))
+        print("selection ", selection, " correct class ", i)
         if selection == i:
             correct +=1
         total += 1
-
+    print("correct ", correct)
+    print("total ", total)
     print ("final accuracy = ", float(correct)/float(total))
 
 
@@ -108,17 +110,11 @@ def getInferenceScore (points_original, points_new, num_points, device, classifi
         data = data.float()
         data = data.to(device)
         output, _, _ = classifier(data)
-        print (output)
-        result = torch.squeeze(torch.argmax(output, dim=1)).cpu().item()
+        print ("output ", output)
+        result = (output[0][1] - output[0][0]).cpu().item()
+        #result = torch.squeeze(torch.argmax(output, dim=1)).cpu().item()
         
-        """
-        #custom score
-        score = (abs(output[0][0]) + abs(output[0][1])).cpu().item()
-        if score > threshold:
-            result = 1
-        else:
-            result = 0
-        """
+
         print (result)
         return (result)
 

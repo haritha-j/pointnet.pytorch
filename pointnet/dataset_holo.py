@@ -58,7 +58,7 @@ class HololensDataset(data.Dataset):
         self.triplet_set, self.target_set = [], []
         for k in range(len(self.pointcloudCollection)):
             for i in range(len(self.pointcloudCollection[k])):
-                for j in range(int(len(self.pointcloudCollection[k])/10)):
+                for j in range(int(len(self.pointcloudCollection[k]))):
                     #ensure that the same cloud doesnt go in as the first two clouds of the triplet
                     if i == j:
                         continue

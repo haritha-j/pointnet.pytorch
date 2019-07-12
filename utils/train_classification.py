@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 def main():
 
-    rotate = False
+    rotate = True
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -131,8 +131,12 @@ def main():
                 for cloud in points:
                     randomTheta = (2*np.pi)/(random.randint(0,360))
                     axis = random.randint(1,3)
-                    cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
-                    cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
+                    if opt.dataset_type == 'hololens':
+                        cloud[1] = rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis)
+                        cloud[2] = rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis)
+                    else:
+                        cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
+                        cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
 
             points = points.transpose(3, 2) #transpose xyz dimension with point dimension
             #print("points transposed")
@@ -186,6 +190,9 @@ def main():
                 pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
                 pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
                 loss_positive = F.cross_entropy(pred_positive, target_positive)
+                print("positive prediction ", pred_positive, " positive target ", target_positive, " positive loss ", loss_positive)
+                print("negative prediction ", pred_negative, " negative target ", target_negative, " negative loss ", loss_negative)
+
                 loss_negative = F.cross_entropy(pred_negative, target_negagtive)
                 loss = loss_negative + loss_positive
 
