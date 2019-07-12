@@ -703,7 +703,7 @@ def getRansacPlanes(
     return planes, plane_properties
 
 
-def getGeneralizedPointCloud(planes,plane_properties):
+def getGeneralizedPointCloud(planes,plane_properties, plane_drop_threshold=0.75):
     included_points = 0
 
     generalized_points = []
@@ -716,7 +716,7 @@ def getGeneralizedPointCloud(planes,plane_properties):
         refpoint = plane_[3]
 
         #larger threshold will drop more planes
-        if plane_properties[i,1]<0.75*min(np.mean(plane_properties[:,1]),np.median(plane_properties[:,1])):
+        if plane_properties[i,1]<plane_drop_threshold*min(np.mean(plane_properties[:,1]),np.median(plane_properties[:,1])):
             continue
 
         PX = points[:,0]

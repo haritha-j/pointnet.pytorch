@@ -14,11 +14,11 @@ from pointnet.dataset_holo import load
 from multiprocessing import Process, Manager
    
 #get multiple point clouds for a given pointcloud by applying ransac
-def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollection):
+def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollection, point_drop_threshold):
     ransacCollectionForLocation = []
     for i in range (ransac_iterations):
         ransacPlanes, ransacPlaneProperties = getRansacPlanes(location)
-        ransacCloud, _ = getGeneralizedPointCloud(ransacPlanes, ransacPlaneProperties)
+        ransacCloud, _ = getGeneralizedPointCloud(ransacPlanes, ransacPlaneProperties, point_drop_threshold)
         print("ransac cloud length ", len(ransacCloud))
         ransacCollectionForLocation.append(ransacCloud[:,:3])
         print(len(ransacCloud[:,:3][0]))
@@ -28,7 +28,8 @@ def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollectio
 
 #for each point cloud, create a number of examples by applying ransac.
 def main():
-    ransac_iterations = 50
+    ransac_iterations = 20
+    point_drop_threshold = 0.2
     root='../pointnet/point_collection/all_point_collection.pickle'
     pointcloudCollection = load(root)
     print("length", len(pointcloudCollection))
@@ -45,7 +46,7 @@ def main():
         for location in locationsOnly:
             """if i>4:
                 break"""
-            p = Process(target=getRansacPointCloudsforLocation, args=(location, ransac_iterations, ransacCollection))
+            p = Process(target=getRansacPointCloudsforLocation, args=(location, ransac_iterations, ransacCollection, point_drop_threshold))
             p.start()
             processes.append(p)
             i+=1
