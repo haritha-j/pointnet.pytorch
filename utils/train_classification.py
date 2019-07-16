@@ -81,7 +81,7 @@ def main():
     else:
         exit('wrong dataset type')
 
-
+    batch_size = opt.batchSize
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batchSize,
@@ -182,8 +182,16 @@ def main():
 
             if i % 100 == 0:
                 print("epoch ", epoch, " i ", i)
-                j, data = next(enumerate(testdataloader, 0))
-                points, target = data
+                #pick a random batch from the test dataset
+                points = []
+                target = []
+                for j in range(batch_size):
+                    k = random.randint(0,2700)
+                    points.append(test_dataset[k][0])
+                    target.append(test_dataset[k][1])
+                points = torch.stack(points)
+                target = torch.stack(target)
+
                 points = points.transpose(3, 2)
                 points_positive = points[:,:2]
                 points_negative = points[:,0:3:2]
@@ -202,15 +210,17 @@ def main():
 
                 loss_negative = F.cross_entropy(pred_negative, target_negagtive)
                 loss = loss_negative + loss_positive
-
+                print ("loss ", loss)
                 #pred_choice = pred.data.max(1)[1]
                 #correct = pred_choice.eq(target.data).cpu().sum()
                 #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
+
                 accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
                 accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
-                accurate_test_labels = accurate_labels_positive + accurate_labels_negative
+                accurate_test_labels = accurate_test_labels_positive + accurate_test_labels_negative
                 all_test_labels = len(target_positive) + len(target_negative)
                 test_accuracy = 100. * float(accurate_test_labels) / float(all_test_labels)
+
                 #print accuracy
                 print (accurate_test_labels_positive, accurate_test_labels_negative)
                 accuracy = 100. * float(accurate_labels) / float(all_labels)

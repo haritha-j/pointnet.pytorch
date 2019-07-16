@@ -90,6 +90,7 @@ class HololensDataset(data.Dataset):
         else:
             self.triplet_set = self.triplet_set[int(len(self.triplet_set)*9/10):]
                     
+        print ("length of set ", len(self.triplet_set))
 
     #return one processed point cloud from triplet, cloud should be in 0->2
     def get_single_cloud(self, index, cloud):
