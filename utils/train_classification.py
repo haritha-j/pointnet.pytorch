@@ -212,7 +212,7 @@ def main():
                 all_test_labels = len(target_positive) + len(target_negative)
                 test_accuracy = 100. * float(accurate_test_labels) / float(all_test_labels)
                 #print accuracy
-                print (accurate_test_labels_positive, accurate_labels_negative)
+                print (accurate_test_labels_positive, accurate_test_labels_negative)
                 accuracy = 100. * float(accurate_labels) / float(all_labels)
                 print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_test_labels, all_test_labels, test_accuracy))
                 outputfile.write('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_test_labels, all_test_labels, test_accuracy))
