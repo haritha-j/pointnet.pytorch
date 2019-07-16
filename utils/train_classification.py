@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 def main():
 
-    rotate = True
+    rotate = False
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -109,7 +109,7 @@ def main():
         classifier.load_state_dict(torch.load(opt.model))
 
 
-    optimizer = optim.Adam(classifier.parameters(), lr=0.001, betas=(0.9, 0.999))
+    optimizer = optim.Adam(classifier.parameters(), lr=0.0001, betas=(0.9, 0.999))
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
     classifier.cuda()
 
@@ -123,6 +123,7 @@ def main():
         for i, data in enumerate(dataloader, 0):    
             #check the contents of data
             points, target = data
+            #print ("sample data", points[0][0], len(points[0]))
             #print ("target")
             #print (target.shape)
             #print ("points")
@@ -182,6 +183,7 @@ def main():
 
             if i % 100 == 0:
                 print("epoch ", epoch, " i ", i)
+                #print ("train accurate labels, positive and negative ", accurate_labels_positive,accurate_labels_negative)
                 #pick a random batch from the test dataset
                 points = []
                 target = []
@@ -191,7 +193,7 @@ def main():
                     target.append(test_dataset[k][1])
                 points = torch.stack(points)
                 target = torch.stack(target)
-
+                
                 points = points.transpose(3, 2)
                 points_positive = points[:,:2]
                 points_negative = points[:,0:3:2]
@@ -230,7 +232,7 @@ def main():
                 print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
                 outputfile.write("\n\n\n")
 
-        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_lr_0001%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0
