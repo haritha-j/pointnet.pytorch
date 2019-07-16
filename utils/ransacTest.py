@@ -1,6 +1,7 @@
 import pickle
+import pptk
 
-f = open('ransac_dataset.pickle', 'rb')
-collection = pickle.load(f)
 
-print (len(collection[0][0]))
+xyz = pptk.rand(100, 3)
+v = pptk.viewer(xyz)
+v.set(point_size=0.005)

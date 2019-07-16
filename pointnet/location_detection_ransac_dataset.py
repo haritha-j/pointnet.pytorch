@@ -30,23 +30,24 @@ def main():
 
     check_equal = False
     partial_realease = False
-    rotate = True
+    rotate = False
     partial_release_radius = 4
     rotate_theta = 1
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--num_points', type=int, default=1000, help='input batch size')
-    parser.add_argument('--model', type=str, default='model/cls_model_new_ransac_199.pth', help='model path')
+        '--num_points', type=int, default=2000, help='input batch size')
+    parser.add_argument('--model', type=str, default='model/cls_model_new_ransac_249.pth', help='model path')
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
 
     opt = parser.parse_args()
     print(opt)
     num_points = opt.num_points
 
-    pointcloud_collection = load('point_collection/all_point_collection.pickle')
-    rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
+    pointcloud_collection = load('../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30.pickle')
+
+    #rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
     #load model
     classifier = pointNetSiamese(k=10, feature_transform=opt.feature_transform)#k is the number of classes in the training dataset
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
@@ -57,7 +58,7 @@ def main():
     total = 0
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
-        points_original = pointcloud_collection[i][1][:,:3]
+        points_original = pointcloud_collection[i][0]
         results = []
         #compare against all other pointclouds in collection
         for j in range (len(pointcloud_collection)):
@@ -70,9 +71,9 @@ def main():
                 num_points = len(points_new)
             elif rotate:
                 #get rotated point cloud
-                points_new = rotated_pointcloud_collection[j][1][:,:3]
+                points_new = rotated_pointcloud_collection[j][0]
             else:
-                points_new = pointcloud_collection[j][1][:,:3]
+                points_new = pointcloud_collection[j][0]
             
             result = getInferenceScore(points_original, points_new, num_points, device, classifier)
             results.append(result)

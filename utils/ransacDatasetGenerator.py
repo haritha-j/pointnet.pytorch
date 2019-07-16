@@ -14,10 +14,10 @@ from pointnet.dataset_holo import load
 from multiprocessing import Process, Manager
    
 #get multiple point clouds for a given pointcloud by applying ransac
-def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollection, point_drop_threshold):
+def getRansacPointCloudsforLocation(location, ransac_copies, ransacCollection, point_drop_threshold, trials):
     ransacCollectionForLocation = []
-    for i in range (ransac_iterations):
-        ransacPlanes, ransacPlaneProperties = getRansacPlanes(location)
+    for i in range (ransac_copies):
+        ransacPlanes, ransacPlaneProperties = getRansacPlanes(location, trials=trials)
         ransacCloud, _ = getGeneralizedPointCloud(ransacPlanes, ransacPlaneProperties, point_drop_threshold)
         print("ransac cloud length ", len(ransacCloud))
         ransacCollectionForLocation.append(ransacCloud[:,:3])
@@ -28,8 +28,9 @@ def getRansacPointCloudsforLocation(location, ransac_iterations, ransacCollectio
 
 #for each point cloud, create a number of examples by applying ransac.
 def main():
-    ransac_iterations = 20
-    point_drop_threshold = 0.1
+    ransac_copies = 20
+    point_drop_threshold = 0.2
+    trials = 30
     root='../pointnet/point_collection/all_point_collection.pickle'
     pointcloudCollection = load(root)
     print("length", len(pointcloudCollection))
@@ -44,9 +45,9 @@ def main():
         processes = []
         i=0
         for location in locationsOnly:
-            """if i>4:
+            """if i>3:
                 break"""
-            p = Process(target=getRansacPointCloudsforLocation, args=(location, ransac_iterations, ransacCollection, point_drop_threshold))
+            p = Process(target=getRansacPointCloudsforLocation, args=(location, ransac_copies, ransacCollection, point_drop_threshold, trials))
             p.start()
             processes.append(p)
             i+=1
@@ -60,7 +61,7 @@ def main():
         print (len(ransacCollection[0]))
         print (len(ransacCollection[0][0]))
 
-        with open('ransac_dataset_drop_0.1.pickle','wb') as f:
+        with open('ransac_dataset_drop_0.2_30.pickle','wb') as f:
             pickle.dump(ransacCollection,f)
 
 

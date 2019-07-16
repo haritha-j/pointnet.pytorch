@@ -129,11 +129,11 @@ def main():
             #if rotation is enabled, rotate positive and negative examples before starting training
             if rotate:
                 for cloud in points:
-                    randomTheta = (2*np.pi)/(random.randint(0,360))
-                    axis = random.randint(1,3)
+                    randomTheta = (2*np.pi)/(random.randint(1,360))
+                    axis = random.randint(0,2)
                     if opt.dataset_type == 'hololens':
-                        cloud[1] = rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis)
-                        cloud[2] = rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis)
+                        cloud[1] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis))
+                        cloud[2] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis))
                     else:
                         cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
                         cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
@@ -204,7 +204,7 @@ def main():
                 accuracy = 100. * accurate_labels / all_labels
                 print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
 
-        torch.save(classifier.state_dict(), '%s/cls_model_%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0
