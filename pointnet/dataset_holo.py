@@ -54,7 +54,7 @@ class HololensDataset(data.Dataset):
             self.classes.append(m)
 
         print("sublength ", len(self.pointcloudCollection[0]))
-        #generate thriplets
+        #generate triplets
         self.triplet_set, self.target_set = [], []
         for k in range(len(self.pointcloudCollection)):
             for i in range(len(self.pointcloudCollection[k])):

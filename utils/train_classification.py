@@ -116,6 +116,7 @@ def main():
     num_batch = len(dataset) / opt.batchSize
 
     for epoch in range(opt.nepoch):
+        outputfile = open("output.txt", "w")
         scheduler.step()
         accurate_labels = 0
         all_labels = 0
@@ -169,12 +170,18 @@ def main():
             accurate_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
             accurate_labels = accurate_labels + accurate_labels_positive + accurate_labels_negative
             all_labels = all_labels + len(target_positive) + len(target_negative)
-            print("epoch ", epoch, " i ", i)
+            outputfile.write("epoch "+ str(epoch) + " i " +  str(i)+ "\n")
+            outputfile.write("accurate_labels_positive "+ str(accurate_labels_positive))
+            outputfile.write("accurate_labels_negative "+ str(accurate_labels_negative))
+            outputfile.write("all_labels "+ str(all_labels))
+            outputfile.write("\n")
+            
             #pred_choice = pred.data.max(1)[1]
             #correct = pred_choice.eq(target.data).cpu().sum()
             #print('[%d: %d/%d] train loss: %f accuracy: %f' % (epoch, i, num_batch, loss.item(), correct.item() / float(opt.batchSize)))
 
             if i % 100 == 0:
+                print("epoch ", epoch, " i ", i)
                 j, data = next(enumerate(testdataloader, 0))
                 points, target = data
                 points = points.transpose(3, 2)
@@ -190,8 +197,8 @@ def main():
                 pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
                 pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
                 loss_positive = F.cross_entropy(pred_positive, target_positive)
-                print("positive prediction ", pred_positive, " positive target ", target_positive, " positive loss ", loss_positive)
-                print("negative prediction ", pred_negative, " negative target ", target_negative, " negative loss ", loss_negative)
+                #print("positive prediction ", pred_positive, " positive target ", target_positive, " positive loss ", loss_positive)
+                #print("negative prediction ", pred_negative, " negative target ", target_negative, " negative loss ", loss_negative)
 
                 loss_negative = F.cross_entropy(pred_negative, target_negagtive)
                 loss = loss_negative + loss_positive
@@ -199,10 +206,19 @@ def main():
                 #pred_choice = pred.data.max(1)[1]
                 #correct = pred_choice.eq(target.data).cpu().sum()
                 #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
-
+                accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
+                accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
+                accurate_test_labels = accurate_labels_positive + accurate_labels_negative
+                all_test_labels = len(target_positive) + len(target_negative)
+                test_accuracy = 100. * float(accurate_test_labels) / float(all_test_labels)
                 #print accuracy
-                accuracy = 100. * accurate_labels / all_labels
-                print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
+                print (accurate_test_labels_positive, accurate_labels_negative)
+                accuracy = 100. * float(accurate_labels) / float(all_labels)
+                print('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_test_labels, all_test_labels, test_accuracy))
+                outputfile.write('Test accuracy: {}/{} ({:.3f}%)'.format(accurate_test_labels, all_test_labels, test_accuracy))
+                outputfile.write('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
+                print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
+                outputfile.write("\n\n\n")
 
         torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_%d.pth' % (opt.outf, epoch))
 """
