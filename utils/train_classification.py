@@ -156,6 +156,8 @@ def main():
             pred_positive, trans, trans_feat = classifier(points_positive) # original and positive image
             pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
 
+            print("positive prediction ", pred_positive, " negative prediction ", pred_negative)
+
             loss_positive = F.cross_entropy(pred_positive, target_positive)
             loss_negative = F.cross_entropy(pred_negative, target_negative)
             loss = loss_negative + loss_positive

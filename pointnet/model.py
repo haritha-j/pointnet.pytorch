@@ -184,10 +184,10 @@ class pointNetSiamese(nn.Module):
             #print ("X")
             #print(x.shape)
             x, trans, trans_feat = self.cls(x) 
-            res.append(F.relu(x)) #sigmoid is used in the original paper
+            res.append(x) #sigmoid is used in the original paper
         
         res = torch.abs(res[1] - res[0])
-        res = self.linear(res)
+        res = F.sigmoid(self.linear(res))
         return res, trans, trans_feat
 
 
