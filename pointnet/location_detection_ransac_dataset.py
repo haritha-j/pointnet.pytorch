@@ -78,6 +78,8 @@ def main():
             result = getInferenceScore(points_original, points_new, num_points, device, classifier)
             results.append(result)
         selection = results.index(max(results))
+        print("count positive ", results.count(1))
+        print("count negative ", results.count(0))
         print("selection ", selection, " correct class ", i)
         if selection == i:
             correct +=1
@@ -93,31 +95,66 @@ def getInferenceScore (points_original, points_new, num_points, device, classifi
         #points_new = points_new.to(device)
         #points_original = points_original.to(device)
         #resize points clouds to a standard size (1000 default)
-        choice_original = np.random.choice(len(points_original), num_points, replace=True)
-        choice_new = np.random.choice(len(points_new), num_points, replace=True)
-        points_original = points_original[choice_original, :]
-        points_new = points_new[choice_new, :]
+        points_original = preparePointCloud(points_original, num_points, True)
+        points_new = preparePointCloud(points_new, num_points, True)
+        #choice_original = np.random.choice(len(points_original), num_points, replace=True)
+        #choice_new = np.random.choice(len(points_new), num_points, replace=True)
+        #points_original = points_original[choice_original, :]
+        #points_new = points_new[choice_new, :]
         data = []
         image_pair = []
         #print ("points original", points_original.shape)
         image_pair.append(points_original)
         image_pair.append(points_new)
+        image_pair = torch.stack(image_pair)
         data.append(image_pair) #create a dataset of only one image pair
-        data = np.asarray(data)
+        #data = np.asarray(data)
         #print("shape ", data.shape)
-        data = torch.from_numpy(data)
+        #data = torch.from_numpy(data)
+        
+        data = torch.stack(data)
         data = data.transpose(2,3)
         #print("shape ", data.shape)
         data = data.float()
         data = data.to(device)
         output, _, _ = classifier(data)
         print ("output ", output)
+        res1 = torch.argmax(output, dim=1)
         result = (output[0][1] - output[0][0]).cpu().item()
         #result = torch.squeeze(torch.argmax(output, dim=1)).cpu().item()
         
 
-        print (result)
-        return (result)
+        print (res1)
+        return (res1)
+
+
+def preparePointCloud(pointcloud, num_points, data_augmentation):
+    #cls = self.classes[self.datapath[index][0]]
+    point_set = np.array(pointcloud, dtype=np.float32)
+
+    choice = np.random.choice(len(point_set), num_points, replace=True)
+    #minimum size of our i/p is 1000
+    #resample (instead of taking all the points take only a selected number of points, default 1000 points)
+    point_set = point_set[choice, :]
+
+    #center and scale the point cloud
+    point_set = point_set - np.expand_dims(np.mean(point_set, axis = 0), 0) # center
+    dist = np.max(np.sqrt(np.sum(point_set ** 2, axis = 1)),0)
+    point_set = point_set / dist #scale
+
+    if data_augmentation:
+        theta = np.random.uniform(0,np.pi*2)
+        rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],[np.sin(theta), np.cos(theta)]])
+        point_set[:,[0,2]] = point_set[:,[0,2]].dot(rotation_matrix) # random rotation
+        point_set += np.random.normal(0, 0.02, size=point_set.shape) # random jitter
+
+    #seg = seg[choice]
+    point_set = torch.from_numpy(point_set)
+    #seg = torch.from_numpy(seg)
+    #cls = torch.from_numpy(np.array([cls]).astype(np.int64))
+
+    return point_set
+
 
 if __name__ == '__main__':
     main()  

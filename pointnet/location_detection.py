@@ -30,7 +30,7 @@ def main():
 
     check_equal = False
     partial_realease = False
-    rotate = True
+    rotate = False
     partial_release_radius = 4
     rotate_theta = 1
 
