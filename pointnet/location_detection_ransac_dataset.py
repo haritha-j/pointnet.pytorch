@@ -58,11 +58,12 @@ def main():
     total = 0
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
-        points_original = pointcloud_collection[i][0]
-        results = []
+
+        points_original = random.choice(pointcloud_collection[i])
+        new_point_clouds = []
         #compare against all other pointclouds in collection
         for j in range (len(pointcloud_collection)):
-
+            
             if partial_realease:
                 #get partial pointcloud
                 points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][1], pointcloud_collection[j][2], partial_release_radius)
@@ -71,17 +72,14 @@ def main():
                 num_points = len(points_new)
             elif rotate:
                 #get rotated point cloud
-                points_new = rotated_pointcloud_collection[j][0]
+                points_new = random.choice(rotated_pointcloud_collection[j])
             else:
-                points_new = pointcloud_collection[j][0]
+                points_new = random.choice(pointcloud_collection[j])
+            new_point_clouds.append(points_new)
             
-            result = getInferenceScore(points_original, points_new, num_points, device, classifier)
-            results.append(result)
-        selection = results.index(max(results))
-        print("count positive ", results.count(1))
-        print("count negative ", results.count(0))
-        print("selection ", selection, " correct class ", i)
-        if selection == i:
+        result = getInferenceScore(points_original, new_point_clouds, num_points, device, classifier)
+
+        if result == i:
             correct +=1
         total += 1
     print("correct ", correct)
@@ -89,29 +87,28 @@ def main():
     print ("final accuracy = ", float(correct)/float(total))
 
 
-def getInferenceScore (points_original, points_new, num_points, device, classifier):
+def getInferenceScore (points_original, new_point_clouds, num_points, device, classifier):
     #one-shot inference
     with torch.no_grad():
         #points_new = points_new.to(device)
         #points_original = points_original.to(device)
         #resize points clouds to a standard size (1000 default)
         points_original = preparePointCloud(points_original, num_points, True)
-        points_new = preparePointCloud(points_new, num_points, True)
+        data = []
+        for i in range (len(new_point_clouds)):
+            points_new = preparePointCloud(new_point_clouds[i], num_points, True)
+            image_pair = []
+            image_pair.append(points_original)
+            image_pair.append(points_new)
+            image_pair = torch.stack(image_pair)
+            data.append(image_pair)
         #choice_original = np.random.choice(len(points_original), num_points, replace=True)
         #choice_new = np.random.choice(len(points_new), num_points, replace=True)
         #points_original = points_original[choice_original, :]
         #points_new = points_new[choice_new, :]
-        data = []
-        image_pair = []
-        #print ("points original", points_original.shape)
-        image_pair.append(points_original)
-        image_pair.append(points_new)
-        image_pair = torch.stack(image_pair)
-        data.append(image_pair) #create a dataset of only one image pair
         #data = np.asarray(data)
         #print("shape ", data.shape)
         #data = torch.from_numpy(data)
-        
         data = torch.stack(data)
         data = data.transpose(2,3)
         #print("shape ", data.shape)
@@ -119,13 +116,28 @@ def getInferenceScore (points_original, points_new, num_points, device, classifi
         data = data.to(device)
         output, _, _ = classifier(data)
         print ("output ", output)
-        res1 = torch.argmax(output, dim=1)
-        result = (output[0][1] - output[0][0]).cpu().item()
-        #result = torch.squeeze(torch.argmax(output, dim=1)).cpu().item()
-        
+        result = torch.max(output, dim=1)
 
-        print (res1)
-        return (res1)
+        #of all the positive results, pick the highest positive result
+        max_index = 0
+        max_value = 0
+        print("result ", result)
+        for j in range (len(result.indices)):
+            if result.indices[j]==1:
+                if result.values[j] > max_value:
+                    max_index = j
+                    max_value = result.values[j]
+        
+        if max_value == 0:
+            print("no result found")
+            return (1000)
+        else:
+            print("final result ", max_value, max_index)
+            return (max_index)
+
+        #result = (output[0][1] - output[0][0]).cpu().item()
+        #result = torch.squeeze(torch.argmax(output, dim=1)).cpu().item()
+
 
 
 def preparePointCloud(pointcloud, num_points, data_augmentation):

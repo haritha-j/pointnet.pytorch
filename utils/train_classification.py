@@ -211,7 +211,7 @@ def main():
                 loss_positive = F.cross_entropy(pred_positive, target_positive)
                 print("positive prediction ", pred_positive, " positive target ", target_positive, " positive loss ", loss_positive)
                 print("negative prediction ", pred_negative, " negative target ", target_negative, " negative loss ", loss_negative)
-
+        
                 loss_negative = F.cross_entropy(pred_negative, target_negagtive)
                 loss = loss_negative + loss_positive
                 print ("loss ", loss)

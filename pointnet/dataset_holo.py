@@ -56,8 +56,11 @@ class HololensDataset(data.Dataset):
         print("sublength ", len(self.pointcloudCollection[0]))
         #generate triplets
         self.triplet_set, self.target_set = [], []
+        #for each class (location)
         for k in range(len(self.pointcloudCollection)):
+            #for each of the 20 ransac generalized clouds in the class
             for i in range(len(self.pointcloudCollection[k])):
+                #for each of the 20 ransac generalized clouds in the class, again
                 for j in range(int(len(self.pointcloudCollection[k]))):
                     #ensure that the same cloud doesnt go in as the first two clouds of the triplet
                     if i == j:
@@ -79,7 +82,7 @@ class HololensDataset(data.Dataset):
                     self.target_set.append([1,0])
 
         self.target_set = torch.tensor(self.target_set)
-        #shuffle the entire dataset, since target_set has the same values, no need to shuffle
+        #shuffle the entire dataset, since target_set has the same values, no need to shuffle it
         random.shuffle(self.triplet_set)
 
         #split into training and testing datasets
