@@ -29,9 +29,9 @@ from dataset_holo import *
 def main():
 
     check_equal = False
-    partial_release = False
+    partial_release = True
     rotate = False
-    partial_release_radius = 4
+    partial_release_radius = 2
     rotate_theta = 1
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -57,22 +57,25 @@ def main():
 
     correct = 0
     total = 0
+
+    new_point_clouds = []
+    #compare against all other pointclouds in collection, currently using the originals, not ransac
+    for j in range (len(pointcloud_collection)):
+        if partial_release:
+            #get partial pointcloud
+            points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][0][0], pointcloud_collection[j][0][1], partial_release_radius)
+            print ("new points length ", len(points_new))
+            points_new = points_new[:,:3]
+            num_points = len(points_new)
+        else:
+            points_new = (pointcloud_collection[j][0][0][:,:3])
+        new_point_clouds.append(points_new)
+
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
 
         points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
-        new_point_clouds = []
-        #compare against all other pointclouds in collection, currently using the originals, not ransac
-        for j in range (len(pointcloud_collection)):
-            if partial_release:
-                #get partial pointcloud
-                points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][0][0], pointcloud_collection[j][0][1], partial_release_radius)
-                print ("new points length ", len(points_new))
-                points_new = points_new[:,:3]
-                num_points = len(points_new)
-            else:
-                points_new = (pointcloud_collection[j][0][0][:,:3])
-            new_point_clouds.append(points_new)
+
             
         result = getInferenceScore(points_original, new_point_clouds, num_points, device, classifier, rotate)
 
@@ -118,7 +121,7 @@ def getInferenceScore (points_original, new_point_clouds, num_points, device, cl
         data = data.float()
         data = data.to(device)
         output, _, _ = classifier(data)
-        print ("output ", output)
+        #print ("output ", output)
         result = torch.max(output, dim=1)
 
         #of all the positive results, pick the highest positive result

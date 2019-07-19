@@ -41,7 +41,7 @@ def getRansacPointCloudsforLocationWithTriangles(location,triangle, ransac_copie
 
 #for each point cloud, create a number of examples by applying ransac.
 def main():
-    ransac_copies = 3
+    ransac_copies = 10
     point_drop_threshold = 0.2
     trials = 30
     root='../pointnet/point_collection/all_point_collection.pickle'
