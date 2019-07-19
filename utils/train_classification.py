@@ -111,7 +111,8 @@ def main():
 
     optimizer = optim.Adam(classifier.parameters(), lr=0.0001, betas=(0.9, 0.999))
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
-    classifier.cuda()
+    if torch.cuda.is_available():
+        classifier.cuda()
 
     num_batch = len(dataset) / opt.batchSize
 
@@ -147,8 +148,9 @@ def main():
             points_negative = points[:,0:3:2]
             target_positive = torch.squeeze(target[:,0])
             target_negative = torch.squeeze(target[:,1])
-            points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
-            target_negative, target_positive = target_negative.cuda(), target_positive.cuda()
+            if torch.cuda.is_available():
+                points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
+                target_negative, target_positive = target_negative.cuda(), target_positive.cuda()
             #print("input to network", points_positive.shape)
 
             optimizer.zero_grad()
@@ -190,7 +192,7 @@ def main():
                 points = []
                 target = []
                 for j in range(batch_size):
-                    k = random.randint(0,2700)
+                    k = random.randint(0,len(test_dataset)-1)
                     points.append(test_dataset[k][0])
                     target.append(test_dataset[k][1])
                 points = torch.stack(points)
@@ -201,8 +203,9 @@ def main():
                 points_negative = points[:,0:3:2]
                 target_positive = torch.squeeze(target[:,0])
                 target_negagtive = torch.squeeze(target[:,1])
-                points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
-                target_negagtive, target_positive = target_negagtive.cuda(), target_positive.cuda()
+                if torch.cuda.is_available():
+                    points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
+                    target_negagtive, target_positive = target_negagtive.cuda(), target_positive.cuda()
                 
                 #print("shape of input", points_positive.shape)
                 classifier = classifier.eval()

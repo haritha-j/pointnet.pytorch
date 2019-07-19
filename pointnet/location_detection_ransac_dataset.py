@@ -51,7 +51,8 @@ def main():
     #load model
     classifier = pointNetSiamese(k=10, feature_transform=opt.feature_transform)#k is the number of classes in the training dataset
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
-    classifier.cuda()
+    if torch.cuda.is_available():
+        classifier.cuda()
     classifier.eval()
 
     correct = 0
@@ -121,7 +122,7 @@ def getInferenceScore (points_original, new_point_clouds, num_points, device, cl
         #of all the positive results, pick the highest positive result
         max_index = 0
         max_value = 0
-        print("result ", result)
+        #print("res", result)
         for j in range (len(result.indices)):
             if result.indices[j]==1:
                 if result.values[j] > max_value:

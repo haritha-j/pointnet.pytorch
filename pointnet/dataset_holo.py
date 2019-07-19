@@ -35,7 +35,8 @@ def load(filename):
 class HololensDataset(data.Dataset):
     def __init__(self, 
     split, 
-    npoints=1000, 
+    npoints=1000,
+    split_ratio = 0.9,
     root='hololens_ransac_dataset.pickle',
     data_augmentation=True):
         
@@ -43,17 +44,27 @@ class HololensDataset(data.Dataset):
         self.root = root
         self.split =split
         self.data_augmentation = data_augmentation
+        self.split_ratio = split_ratio
         
 
         self.pointcloudCollection = load(self.root)
         print("length ", len(self.pointcloudCollection))
+
+        #test train split
+        if self.split == 'train':
+            for c in range(len(self.pointcloudCollection)):
+                self.pointcloudCollection[c] = self.pointcloudCollection[c][:int(len(self.pointcloudCollection[c])*self.split_ratio)]
+        else:
+             for c in range(len(self.pointcloudCollection)):
+                self.pointcloudCollection[c] = self.pointcloudCollection[c][int(len(self.pointcloudCollection[c])*self.split_ratio):]           
+        #print("individual class length ", len(self.pointcloudCollection[0]))
 
         #create a list of classes using the class indexes
         self.classes = []
         for m in range(len(self.pointcloudCollection)):
             self.classes.append(m)
 
-        print("sublength ", len(self.pointcloudCollection[0]))
+        #print("sublength ", len(self.pointcloudCollection[0]))
         #generate triplets
         self.triplet_set, self.target_set = [], []
         #for each class (location)
@@ -85,6 +96,7 @@ class HololensDataset(data.Dataset):
         #shuffle the entire dataset, since target_set has the same values, no need to shuffle it
         random.shuffle(self.triplet_set)
 
+        """
         #split into training and testing datasets
         print("triplet set length ", len(self.triplet_set))
         print("split ", len(self.triplet_set)*9/10)
@@ -92,8 +104,9 @@ class HololensDataset(data.Dataset):
             self.triplet_set = self.triplet_set[:int(len(self.triplet_set)*9/10)]
         else:
             self.triplet_set = self.triplet_set[int(len(self.triplet_set)*9/10):]
-                    
+         """           
         print ("length of set ", len(self.triplet_set))
+        
 
     #return one processed point cloud from triplet, cloud should be in 0->2
     def get_single_cloud(self, index, cloud):
