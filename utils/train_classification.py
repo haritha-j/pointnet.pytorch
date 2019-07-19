@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 def main():
 
+    #rotational invariance built into data augmentation during data loading 
     rotate = False
 
     parser = argparse.ArgumentParser()
@@ -133,13 +134,13 @@ def main():
             if rotate:
                 for cloud in points:
                     randomTheta = (2*np.pi)/(random.randint(1,360))
-                    axis = random.randint(0,2)
+                    randomAxis = random.randint(0,2)
                     if opt.dataset_type == 'hololens':
-                        cloud[1] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis))
-                        cloud[2] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, axis))
+                        cloud[1] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, randomAxis))
+                        cloud[2] = torch.from_numpy(rotatePointCloudWithoutNormals(cloud[1], randomTheta, randomAxis))
                     else:
-                        cloud[1] = rotatePointCloud(cloud[1], randomTheta, axis)
-                        cloud[2] = rotatePointCloud(cloud[1], randomTheta, axis)
+                        cloud[1] = rotatePointCloud(cloud[1], randomTheta, randomAxis)
+                        cloud[2] = rotatePointCloud(cloud[1], randomTheta, randomAxis)
 
             points = points.transpose(3, 2) #transpose xyz dimension with point dimension
             #print("points transposed")

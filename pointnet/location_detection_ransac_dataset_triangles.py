@@ -30,7 +30,7 @@ def main():
 
     check_equal = False
     partial_release = False
-    rotate = True
+    rotate = False
     partial_release_radius = 4
     rotate_theta = 1
 
@@ -45,7 +45,7 @@ def main():
     print(opt)
     num_points = opt.num_points
 
-    pointcloud_collection = load('../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30.pickle')
+    pointcloud_collection = load('../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30_with_triangles.pickle')
 
     #rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
     #load model
@@ -60,19 +60,18 @@ def main():
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
 
-        points_original = random.choice(pointcloud_collection[i])
+        points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
         new_point_clouds = []
-        #compare against all other pointclouds in collection
+        #compare against all other pointclouds in collection, currently using the originals, not ransac
         for j in range (len(pointcloud_collection)):
-            
-            if partial_realease:
+            if partial_release:
                 #get partial pointcloud
-                points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][1], pointcloud_collection[j][2], partial_release_radius)
+                points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][0][0], pointcloud_collection[j][0][1], partial_release_radius)
                 print ("new points length ", len(points_new))
                 points_new = points_new[:,:3]
                 num_points = len(points_new)
             else:
-                points_new = random.choice(pointcloud_collection[j])
+                points_new = (pointcloud_collection[j][0][0][:,:3])
             new_point_clouds.append(points_new)
             
         result = getInferenceScore(points_original, new_point_clouds, num_points, device, classifier, rotate)
