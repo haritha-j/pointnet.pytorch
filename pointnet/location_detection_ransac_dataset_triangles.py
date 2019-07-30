@@ -30,9 +30,10 @@ def main():
 
     check_equal = False
     partial_release = True
-    rotate = False
-    partial_release_radius = 2
+    rotate = True
+    partial_release_radius = 3
     rotate_theta = 1
+    compare_against_ransac = False
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
@@ -73,8 +74,10 @@ def main():
 
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
-
-        points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
+        if compare_against_ransac:
+            points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
+        else:
+            points_original = pointcloud_collection[i][0][0][:,:3]
 
             
         result = getInferenceScore(points_original, new_point_clouds, num_points, device, classifier, rotate)
