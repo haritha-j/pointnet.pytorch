@@ -10,6 +10,7 @@ import torch.utils.data
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
 from pointnet.model import pointNetSiamese, feature_transform_regularizer
 from pointnet.dataset_holo import HololensDataset
+from pointnet.dataset_holo_partial import HololensPartialDataset
 import torch.nn.functional as F
 from tqdm import tqdm
 
@@ -78,6 +79,18 @@ def main():
             npoints=opt.num_points,
             split='test'
         )
+    elif opt.dataset_type == 'hololensPartial':
+        dataset = HololensPartialDataset(
+            root=opt.dataset,
+            npoints=opt.num_points,
+            split='train')
+        
+        test_dataset = HololensPartialDataset(
+            root=opt.dataset,
+            npoints=opt.num_points,
+            split='test'
+        )
+    
         
     else:
         exit('wrong dataset type')
@@ -238,7 +251,7 @@ def main():
                 print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
                 outputfile.write("\n\n\n")
 
-        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_lr_0001%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_lr_0001_partial_radius_1_%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0
