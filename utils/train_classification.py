@@ -8,7 +8,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
-from pointnet.model import pointNetSiamese, feature_transform_regularizer
+from pointnet.model import pointNetSiamese, feature_transform_regularizer, pointNetParallel
 from pointnet.dataset_holo import HololensDataset
 from pointnet.dataset_holo_partial import HololensPartialDataset
 import torch.nn.functional as F
@@ -31,6 +31,7 @@ def main():
         '--nepoch', type=int, default=250, help='number of epochs to train for')
     parser.add_argument('--outf', type=str, default='cls', help='output folder')
     parser.add_argument('--model', type=str, default='', help='model path')
+    parser.add_argument('--model_type', type=str, default='siamese', help='siamese or parallel')
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='shapenet', help="dataset type shapenet|modelnet40")
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
@@ -117,7 +118,10 @@ def main():
     except OSError:
         pass
 
-    classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
+    if opt.model_type == 'siamese':
+        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
+    else:
+        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform) 
 
     if opt.model != '':
         classifier.load_state_dict(torch.load(opt.model))

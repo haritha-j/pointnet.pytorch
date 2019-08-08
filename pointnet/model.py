@@ -194,7 +194,7 @@ class pointNetSiamese(nn.Module):
 #the siamese network module
 class pointNetParallel(nn.Module):
     def __init__(self, k=2, feature_transform=False):
-        super(pointNetSiamese, self).__init__()
+        super(pointNetParallel, self).__init__()
         self.clsOriginal = PointNetCls()
         self.clsPartial = PointNetCls()
         self.linear = nn.Linear(1024, 2) #why is there two ouputs instead of one (paper has one output)?

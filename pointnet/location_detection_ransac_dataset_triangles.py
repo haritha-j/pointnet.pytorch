@@ -40,6 +40,8 @@ def main():
     parser.add_argument(
         '--num_points', type=int, default=2000, help='input batch size')
     parser.add_argument('--model', type=str, default='model/cls_model_new_ransac_249.pth', help='model path')
+    parser.add_argument('--model_type', type=str, default='siamese', help='siamese or parallel')
+
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
 
     opt = parser.parse_args()
@@ -50,7 +52,11 @@ def main():
 
     #rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
     #load model
-    classifier = pointNetSiamese(k=10, feature_transform=opt.feature_transform)#k is the number of classes in the training dataset
+
+    if opt.model_type == 'siamese':
+        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
+    else:
+        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform) 
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
     if torch.cuda.is_available():
         classifier.cuda()

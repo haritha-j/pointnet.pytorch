@@ -1,7 +1,0 @@
-epoch 1 i 0
-accurate_labels_positive tensor(6)accurate_labels_negative tensor(27)all_labels 64
-Test accuracy: 32/64 (50.000%)Train accuracy: 28/64 (43.750%)
-
-
-epoch 0 i 1
-accurate_labels_positive tensor(7)accurate_labels_negative tensor(16)all_labels 108
