@@ -190,7 +190,32 @@ class pointNetSiamese(nn.Module):
         res = F.sigmoid(self.linear(res))
         return res, trans, trans_feat
 
+#the parallel architecture uses two different sets of weights for feeding the first and second inputs, unlike a siamese network
+#the siamese network module
+class pointNetParallel(nn.Module):
+    def __init__(self, k=2, feature_transform=False):
+        super(pointNetSiamese, self).__init__()
+        self.clsOriginal = PointNetCls()
+        self.clsPartial = PointNetCls()
+        self.linear = nn.Linear(1024, 2) #why is there two ouputs instead of one (paper has one output)?
 
+    def forward(self, data):
+        #data contains the two inputs
+        #both inputs pass through the pointnetcls module
+        res = []
+        for i in range(2):
+            x = data[:,i]
+            #print ("X")
+            #print(x.shape)
+            if i == 1:
+                x, trans, trans_feat = self.clsOriginal(x)
+            else:
+                x, trans, trans_feat = self.clsPartial(x)
+            res.append(x) #sigmoid is used in the original paper
+        
+        res = torch.abs(res[1] - res[0])
+        res = F.sigmoid(self.linear(res))
+        return res, trans, trans_feat
 
 class PointNetDenseCls(nn.Module):
     def __init__(self, k = 2, feature_transform=False):
