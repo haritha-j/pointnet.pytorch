@@ -20,7 +20,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 from pointnet.dataset import ShapeNetDataset, ModelNetDataset
-from pointnet.model import pointNetSiamese, feature_transform_regularizer
+from pointnet.model import pointNetSiamese, feature_transform_regularizer, pointNetParallel
 import torch.nn.functional as F
 from tqdm import tqdm
 from dataset_holo import *
@@ -56,7 +56,7 @@ def main():
     if opt.model_type == 'siamese':
         classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
     else:
-        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform) 
+        classifier = pointNetParallel(k=num_classes, feature_transform=opt.feature_transform) 
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
     if torch.cuda.is_available():
         classifier.cuda()

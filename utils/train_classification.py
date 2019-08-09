@@ -121,7 +121,7 @@ def main():
     if opt.model_type == 'siamese':
         classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform)
     else:
-        classifier = pointNetSiamese(k=num_classes, feature_transform=opt.feature_transform) 
+        classifier = pointNetParallel(k=num_classes, feature_transform=opt.feature_transform) 
 
     if opt.model != '':
         classifier.load_state_dict(torch.load(opt.model))
@@ -142,6 +142,7 @@ def main():
         for i, data in enumerate(dataloader, 0):    
             #check the contents of data
             points, target = data
+            #print ("size of loaded data ", points.shape)
             #print ("sample data", points[0][0], len(points[0]))
             #print ("target")
             #print (target.shape)
@@ -255,7 +256,7 @@ def main():
                 print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
                 outputfile.write("\n\n\n")
 
-        torch.save(classifier.state_dict(), '%s/cls_model_new_ransac_lr_0001_partial_radius_1_%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_partial_ransac_lr_0001_partial_radius_1_%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0
