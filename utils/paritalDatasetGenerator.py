@@ -15,8 +15,8 @@ from pointnet.info3d import *
 from pointnet.dataset_holo import load
 from multiprocessing import Process, Manager
 
-partial_release_radius = 1
-no_of_partial_clouds = 50
+partial_release_radius = 2
+no_of_partial_clouds = 100
 
 def get_partial_clouds_for_location(location, triangles, no_of_partial_clouds, partial_release_radius, partial_cloud_collection):
     partial_clouds = []
