@@ -29,18 +29,18 @@ from dataset_holo import *
 def main():
 
     check_equal = False
-    partial_release = True
+    partial_release = False
     rotate = True
     partial_release_radius = 3
     rotate_theta = 1
-    compare_against_ransac = False
+    compare_against_original = False
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--num_points', type=int, default=2000, help='input batch size')
+    parser.add_argument('--num_points', type=int, default=2000, help='input batch size')
     parser.add_argument('--model', type=str, default='model/cls_model_new_ransac_249.pth', help='model path')
     parser.add_argument('--model_type', type=str, default='siamese', help='siamese or parallel')
+    parser.add_argument('--dataset', type=str, default='../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30_with_triangles.pickle', help='dataset location')
 
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
 
@@ -48,8 +48,8 @@ def main():
     print(opt)
     num_points = opt.num_points
 
-    pointcloud_collection = load('../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30_with_triangles.pickle')
-
+    pointcloud_collection = load(opt.dataset)
+    num_classes = 73
     #rotated_pointcloud_collection = rotatePointCollection(pointcloud_collection, rotate_theta)
     #load model
 
@@ -80,10 +80,11 @@ def main():
 
     for i in range (len(pointcloud_collection)):
         #define original point cloud for comparison
-        if compare_against_ransac:
-            points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
-        else:
+        if compare_against_original:
             points_original = pointcloud_collection[i][0][0][:,:3]
+        else:
+            
+            points_original = random.choice(pointcloud_collection[i][1:])[0][:,:3]
 
             
         result = getInferenceScore(points_original, new_point_clouds, num_points, device, classifier, rotate)

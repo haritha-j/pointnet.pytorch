@@ -94,9 +94,9 @@ class HololensPartialDataset(data.Dataset):
         self.target_set = torch.tensor(self.target_set)
         #shuffle the entire dataset, since target_set has the same values, no need to shuffle it
         random.shuffle(self.triplet_set)
-        #remove the last item in the set to make a dataset of 100 pointclouds devisible by 32
-        self.triplet_set = self.triplet_set[:-1]
-        self.target_set = self.target_set[:-1]
+        #remove the last item in the set to make a dataset of 100 pointclouds devisible by 32 - only a problem if remainder is 1
+        #self.triplet_set = self.triplet_set[:-1]
+        #self.target_set = self.target_set[:-1]
 
         """
         #split into training and testing datasets
