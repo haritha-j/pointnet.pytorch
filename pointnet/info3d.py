@@ -533,6 +533,7 @@ def getPartialPointCloud(
         if verbose: print(" Computed origin-vertex",vertex)
     
     original_vertex = pointCloud[np.clip(vertex,0,len(pointCloud))]
+    print ("original vertex : ", original_vertex[:3])
     # makes sure that we don't get a point beyond the pC size
 
     nbrs = NearestNeighbors(n_neighbors=len(pointCloud)-1, algorithm='brute').fit(pointCloud[:,:3])

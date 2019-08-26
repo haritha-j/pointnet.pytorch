@@ -65,7 +65,7 @@ def main():
         #compare against all other pointclouds in collection
         for j in range (len(pointcloud_collection)):
             
-            if partial_realease:
+            if partial_release:
                 #get partial pointcloud
                 points_new, _, _ = getPartialPointCloud(pointcloud_collection[j][1], pointcloud_collection[j][2], partial_release_radius)
                 print ("new points length ", len(points_new))

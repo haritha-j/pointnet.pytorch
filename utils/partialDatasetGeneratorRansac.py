@@ -20,7 +20,7 @@ no_of_partial_clouds = 200
 
 def get_partial_clouds_for_location(location, triangles, no_of_partial_clouds, partial_release_radius, partial_cloud_collection):
     partial_clouds = []
-    #first item is the actual point cloud, second item onwards are the ransac planes
+    #first item is the actual point cloud, second item onwards are the partial spaces
     partial_clouds.append([location, triangles])
     for i in range(no_of_partial_clouds):
         points_new, triangles_new, _ = getPartialPointCloud(location, triangles, partial_release_radius)
@@ -30,7 +30,7 @@ def get_partial_clouds_for_location(location, triangles, no_of_partial_clouds, p
     print ("current length ", len(partial_cloud_collection))
 
 def main():
-    root='../utils/hololens_ransac_dataset/ransac_dataset_drop_0.2_30_with_triangles.pickle'
+    root='../pointnet/point_collection/all_point_collection.pickle'
     pointcloudCollection = load(root)
     print("length", len(pointcloudCollection[1][1]))
 
@@ -59,7 +59,7 @@ def main():
         print(len(partialCloudCollection[0]))
         print(len(partialCloudCollection[0][0]))
 
-        with open("partial_dataset_radius_2_x100_with_triangles.pickle", 'wb') as f:
+        with open("partial_dataset_radius_2_x100_with_triangles_withxyz.pickle", 'wb') as f:
             pickle.dump(partialCloudCollection, f)
 
 
