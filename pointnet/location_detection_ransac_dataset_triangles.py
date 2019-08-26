@@ -31,7 +31,7 @@ def main():
     check_equal = False
     partial_release = False
     rotate = True
-    partial_release_radius = 3
+    partial_release_radius = 1
     rotate_theta = 1
     compare_against_original = False
 

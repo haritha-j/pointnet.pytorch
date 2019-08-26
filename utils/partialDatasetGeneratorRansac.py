@@ -15,17 +15,17 @@ from pointnet.info3d import *
 from pointnet.dataset_holo import load
 from multiprocessing import Process, Manager
 
-partial_release_radius = 1
-no_of_partial_clouds = 200
+partial_release_radius = 0.5
+no_of_partial_clouds = 256
 
 def get_partial_clouds_for_location(location, triangles, no_of_partial_clouds, partial_release_radius, partial_cloud_collection):
     partial_clouds = []
     #first item is the actual point cloud, second item onwards are the partial spaces
     partial_clouds.append([location, triangles])
     for i in range(no_of_partial_clouds):
-        points_new, triangles_new, _ = getPartialPointCloud(location, triangles, partial_release_radius)
+        points_new, triangles_new, original_vertex = getPartialPointCloud(location, triangles, partial_release_radius)
         print ("generated cloud no. ", i, " of size ", len(points_new))
-        partial_clouds.append([points_new, triangles_new])
+        partial_clouds.append([points_new, triangles_new, original_vertex[:3]])
     partial_cloud_collection.append(partial_clouds)
     print ("current length ", len(partial_cloud_collection))
 

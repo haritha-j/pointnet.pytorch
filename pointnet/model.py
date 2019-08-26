@@ -190,6 +190,31 @@ class pointNetSiamese(nn.Module):
         res = F.sigmoid(self.linear(res))
         return res, trans, trans_feat
 
+#module for capturing features from a sub-cloud, k is the number of features
+class pointNetSubFeatures(nn.Module):
+    def __init__(self, k=16, feature_transform=False):
+        super(pointNetSubFeatures, self).__init__()
+        self.feature_transform = feature_transform
+        self.feat = PointNetfeat(global_feat=True, feature_transform=feature_transform)
+        self.fc1 = nn.Linear(1024, 256)
+        self.fc2 = nn.Linear(256, k)
+        #self.dropout = nn.Dropout(p=0.3)
+        self.bn1 = nn.BatchNorm1d(256)
+        #self.bn2 = nn.BatchNorm1d(256)
+        self.relu = nn.ReLU()
+
+    def forward(self, data):
+        res=[]
+        for i in range(len(data)):
+            x = data[i]
+            x, trans, trans_feat = self.feat(x)
+            x = F.relu(self.bn1(self.fc1(x)))
+            x = self.fc2(x)
+            res.append(x)
+        #x = self.fc3(x)
+        return res, trans, trans_feat
+
+
 #the parallel architecture uses two different sets of weights for feeding the first and second inputs, unlike a siamese network
 #the siamese network module
 class pointNetParallel(nn.Module):
