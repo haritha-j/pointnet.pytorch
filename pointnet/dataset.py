@@ -117,7 +117,7 @@ class ShapeNetDataset(data.Dataset):
             point_sets.append(initial_point_set)
 
             #load positive example (same point cloud, will be modified by data augmentation)
-            point_sets.append(intitial_point_set)
+            point_sets.append(initial_point_set)
 
             #load negative example (random point cloud from same class)
             random_choice1 = np.random.choice(len(self.datapath))
