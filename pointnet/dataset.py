@@ -116,18 +116,14 @@ class ShapeNetDataset(data.Dataset):
                 initial_point_set, initial_class = self.datapath[cloud_index], self.classes[self.datapath[cloud_index][0]]
             point_sets.append(initial_point_set)
 
-            #load positive example (random point cloud from same class)
+            #load positive example (same point cloud, will be modified by data augmentation)
+            point_sets.append(intitial_point_set)
+
+            #load negative example (random point cloud from same class)
             random_choice1 = np.random.choice(len(self.datapath))
             while (self.classes[self.datapath[random_choice1][0]] != initial_class) and (random_choice1 != cloud_index) :
                 random_choice1 = np.random.choice(len(self.datapath))
-            positive_example = self.datapath[random_choice1]
-            point_sets.append(positive_example)
-
-            #load negative example (random point cloud from different class)
-            random_choice2 = np.random.choice(len(self.datapath))
-            while (self.classes)[self.datapath[random_choice2][0]] == initial_class:
-                random_choice2 = np.random.choice(len(self.datapath))
-            negative_example = self.datapath[random_choice2]
+            negative_example = self.datapath[random_choice1]
             point_sets.append(negative_example)
 
             self.triplet_set.append(point_sets) #should this be torch.stack'ed?
