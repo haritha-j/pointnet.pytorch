@@ -109,6 +109,8 @@ class ShapeNetDataset(data.Dataset):
         self.num_seg_classes = self.seg_classes[list(self.cat.keys())[0]]
         print(self.seg_classes, self.num_seg_classes)
 
+        print ("lenght of data ")
+        print (len(self.datapath))
         #create point cloud triplets
         self.triplet_set, self.target_set = [], []
         for cloud_index in range(len(self.datapath)):
