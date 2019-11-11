@@ -236,7 +236,7 @@ def main():
     print('classes', num_classes)
 
     try:
-        os.makedirs(opt.outf)
+        #vvvvos.makedirs(opt.outf)
     except OSError:
         pass
 
@@ -269,17 +269,19 @@ def main():
             point_cloud_pair.append(test_dataset[count][j])
             points.append(torch.stack(point_cloud_pair))
             if j == 1:
-                target.append(torch.FloatTensor([1]))
+                target.append([1])
             else:
-                target.append(torch.FloatTensor([0]))
+                target.append([0])
         points = torch.stack(points)
-        target = torch.stack(target)
+        target = torch.tensor(target)
         
         points = points.transpose(3, 2)
         #points_positive = points[:,:2]
         #points_negative = points[:,0:3:2]
         target = torch.squeeze(target)
         #target_negative = torch.squeeze(target[:,1])
+        print("SHape")
+        print(target)
         if torch.cuda.is_available():
             points = points.cuda()
             target = target.cuda()
@@ -289,7 +291,7 @@ def main():
         #print("shape of input", points_positive.shape)
         pred, trans, trans_feat = classifier(points) # original and positive image
         #pred_negative, trans, trans_feat = classifier(points_negative) # original and negative image
-        loss = F.cross_entropy(pred, target)        
+        #loss = F.cross_entropy(pred, target)        
         #loss_negative = F.cross_entropy(pred_negative, target_negative)
         #loss = loss_negative + loss_positive
         #print ("loss ", loss)
@@ -301,8 +303,8 @@ def main():
         #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
 
         print (len(pred))
-        for r in range(len(pred)):
-            print(torch.argmax(pred, dim=1))
+        #for r in range(len(pred)):
+        print(torch.argmax(pred, dim=1))
 
         correct_count+=1
         total+=1

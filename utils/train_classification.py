@@ -256,7 +256,7 @@ def main():
                 print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
                 outputfile.write("\n\n\n")
 
-        torch.save(classifier.state_dict(), '%s/cls_model_partial_ransac_lr_0001_partial_radius_1_parallel_%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_partial_ransac_lr_0001_partial_radius_1_siamese4096_%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0

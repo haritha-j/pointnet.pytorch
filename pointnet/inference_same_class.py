@@ -125,8 +125,11 @@ def main():
         points = points.transpose(3, 2)
         points_positive = points[:,:2]
         points_negative = points[:,0:3:2]
+        
         target_positive = torch.squeeze(target[:,0])
         target_negative = torch.squeeze(target[:,1])
+        print("SHape")
+        print(points_positive.shape)
         if torch.cuda.is_available():
             points_positive, points_negative = points_positive.cuda(), points_negative.cuda()
             target_negative, target_positive = target_negative.cuda(), target_positive.cuda()
@@ -137,6 +140,10 @@ def main():
         loss_positive = F.cross_entropy(pred_positive, target_positive)        
         loss_negative = F.cross_entropy(pred_negative, target_negative)
         loss = loss_negative + loss_positive
+        print("pred positive")
+        print(torch.argmax(pred_positive, dim=1))
+        print("pred negative")
+        print(torch.argmax(pred_negative, dim=1))
         #print ("loss ", loss)
         #print("positive prediction ", pred_positive, " positive target ", target_positive, " positive loss ", loss_positive)
         #print("negative prediction ", pred_negative, " negative target ", target_negative, " negative loss ", loss_negative)
