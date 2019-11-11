@@ -126,7 +126,7 @@ class ShapeNetDataset(data.Dataset):
 
             #load negative example (random point cloud from same class)
             random_choice1 = np.random.choice(len(self.datapath))
-            while (self.classes[self.datapath[random_choice1][0]] != initial_class) and (random_choice1 != cloud_index) :
+            while (self.classes[self.datapath[random_choice1][0]] != initial_class) or (random_choice1 == cloud_index) :
                 random_choice1 = np.random.choice(len(self.datapath))
             negative_example = self.datapath[random_choice1]
             point_sets.append(negative_example)
