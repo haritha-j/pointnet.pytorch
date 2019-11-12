@@ -33,7 +33,6 @@ def main():
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='shapenet', help="dataset type shapenet|modelnet40")
     parser.add_argument('--feature_transform', default=True, action='store_true', help="use feature transform")
-
     opt = parser.parse_args()
     print(opt)
 
@@ -49,14 +48,16 @@ def main():
         dataset = ShapeNetDataset(
             root=opt.dataset,
             classification=True,
-            npoints=opt.num_points)
+            npoints=opt.num_points,
+            holes= opt.holes)
 
         test_dataset = ShapeNetDataset(
             root=opt.dataset,
             classification=True,
             split='test',
             npoints=opt.num_points,
-            data_augmentation=True) 
+            data_augmentation=True,
+            holes = opt.holes) 
         
     else:
         exit('wrong dataset type')

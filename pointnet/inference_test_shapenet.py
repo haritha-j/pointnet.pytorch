@@ -32,7 +32,10 @@ class ShapeNetDatasetEval(data.Dataset):
                  classification=False,
                  class_choice=None,
                  split='train',
-                 data_augmentation=True):
+                 data_augmentation=True,
+                 batch_size = 32,
+                 holes=0,
+                 hole_radius=0):
         self.npoints = npoints
         self.root = root
         self.catfile = os.path.join(self.root, 'synsetoffset2category.txt')
@@ -40,6 +43,7 @@ class ShapeNetDatasetEval(data.Dataset):
         self.data_augmentation = data_augmentation
         self.classification = classification
         self.seg_classes = {}
+        self.batch_size = batch_size
 
         print ( "root")
         print (self.root)
@@ -95,15 +99,15 @@ class ShapeNetDatasetEval(data.Dataset):
                 random_choice0 = np.random.choice(len(self.datapath))
                 while ((self.classes[self.datapath[random_choice0][0]] != cloud_index)):
                     random_choice0 = np.random.choice(len(self.datapath))
-                point_cloud = self.datapath[cloud_index]
+                point_cloud = self.datapath[random_choice0]
                 point_sets.append(point_cloud)
                 point_sets.append(point_cloud)
-                for j in range(31):
+                for j in range(batch_size-1):
                     random_choice1 = np.random.choice(len(self.datapath))
                     while ((self.classes[self.datapath[random_choice1][0]] != cloud_index) or (random_choice1 == random_choice0)):
                         random_choice1 = np.random.choice(len(self.datapath))
                         #print("S")
-                    point_cloud = self.datapath[cloud_index]
+                    point_cloud = self.datapath[random_choice1]
                     #print("X")
                     point_sets.append(point_cloud)    
 
@@ -152,7 +156,7 @@ class ShapeNetDatasetEval(data.Dataset):
 
     def __getitem__(self, index):
         point_sets = []
-        for i in range (33):
+        for i in range (self.batch_size+1):
             point_sets.append(self.get_single_cloud(index, i))
         
         point_sets = torch.stack(point_sets)
@@ -181,6 +185,9 @@ def main():
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='shapenet', help="dataset type shapenet|modelnet40")
     parser.add_argument('--feature_transform', default=True, action='store_true', help="use feature transform")
+    parser.add_argument('--holes', type=int, default=0)
+    parser.add_argument('--hole_radius', type=int, default=0)
+
 
     opt = parser.parse_args()
     print(opt)
@@ -192,19 +199,27 @@ def main():
     print("Random Seed: ", opt.manualSeed)
     random.seed(opt.manualSeed)
     torch.manual_seed(opt.manualSeed)
+    batch_size = opt.batchSize
 
     if opt.dataset_type == 'shapenet':
         dataset = ShapeNetDatasetEval(
             root=opt.dataset,
             classification=True,
-            npoints=opt.num_points)
+            npoints=opt.num_points,
+            batch_size = batch_size,
+            holes = opt.holes,
+            hole_radius = opt.hole_radius)
 
         test_dataset = ShapeNetDatasetEval(
             root=opt.dataset,
             classification=True,
             split='test',
             npoints=opt.num_points,
-            data_augmentation=True) 
+            data_augmentation=True,
+            batch_size = batch_size,
+            holes = opt.holes,
+            hole_radius = opt.hole_radius)
+ 
         
     else:
         exit('wrong dataset type')
@@ -218,7 +233,7 @@ def main():
     classifier.load_state_dict(torch.load(opt.model, map_location=device))
 
 
-    batch_size = opt.batchSize
+    
     '''dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batchSize,
@@ -254,6 +269,7 @@ def main():
 
     #num_batch = len(dataset) / opt.batchSize
     correct_count = 0
+    top3_count = 0
     total = 0
     for count in range(len(test_dataset)):
         print(count)
@@ -280,8 +296,8 @@ def main():
         #points_negative = points[:,0:3:2]
         target = torch.squeeze(target)
         #target_negative = torch.squeeze(target[:,1])
-        print("SHape")
-        print(target)
+        #print("SHape")
+        #print(target)
         if torch.cuda.is_available():
             points = points.cuda()
             target = target.cuda()
@@ -302,11 +318,49 @@ def main():
         #correct = pred_choice.eq(target.data).cpu().sum()
         #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
 
-        print (len(pred))
-        #for r in range(len(pred)):
-        print(torch.argmax(pred, dim=1))
+        print ("pred")
+        print (pred)
+        
+        
+        result = torch.max(pred, dim=1)
+        print("result")
+        print(result.indices)
+        #of all the positive results, pick the highest positive result and the top 3 positive results
+        #we expect the top result to be the 0th index
+        positives = []
+        positive_indices = []
+        max_index, max_index2, max_index3 = -1, -1, -1
+        #print("res", result)
+        for j in range (len(result.indices)):
+            if result.indices[j]==1:
+                positives.append(result.values[j].item())
+                positive_indices.append(j)
+        
 
-        correct_count+=1
+        if len(positives)>0:
+            print("max")
+            print(positives)
+            max_index = positive_indices[positives.index(max(positives))]
+
+            del positive_indices[positives.index(max(positives))]
+            del positives[positives.index(max(positives))]
+            if (len(positives)>0):
+                max_index2 = positive_indices[positives.index(max(positives))]
+                del positive_indices[positives.index(max(positives))]
+                del positives[positives.index(max(positives))]
+                if (len(positives)>0):
+                    max_index3 = positive_indices[positives.index(max(positives))]
+            print ("top 3")
+            print(max_index, max_index2, max_index3)
+        else:
+            print("no result found")
+
+        if (max_index ==0):
+            correct_count+=1
+            print("result correct")
+        if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
+            top3_count +=1
+            print("result in top3")
         total+=1
         #accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
         #accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
@@ -328,8 +382,12 @@ def main():
     print(total)
     print("Correct")
     print(correct_count)
+    print("top3")
+    print(top3_count)
     print ("Accuracy")
     print(100. * float(correct_count)/float(total))
+    print ("Top 3 Accuracy")
+    print(100. * float(top3_count)/float(total))
     
     
     #print("final accuracy")

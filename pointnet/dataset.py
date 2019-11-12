@@ -60,7 +60,9 @@ class ShapeNetDataset(data.Dataset):
                  classification=False,
                  class_choice=None,
                  split='train',
-                 data_augmentation=True):
+                 data_augmentation=True,
+                 holes=0,
+                 hole_radius = 0):
         self.npoints = npoints
         self.root = root
         self.catfile = os.path.join(self.root, 'synsetoffset2category.txt')
@@ -68,6 +70,7 @@ class ShapeNetDataset(data.Dataset):
         self.data_augmentation = data_augmentation
         self.classification = classification
         self.seg_classes = {}
+        awlf.holes=holes
 
         print ( "root")
         print (self.root)
@@ -150,6 +153,9 @@ class ShapeNetDataset(data.Dataset):
         #minimum size of our i/p is 1000
         #resample (instead of taking all the points take only a selected number of points, default 1000 points)
         point_set = point_set[choice, :]
+
+        #add holes to the dataset - pick random points and remove other points within a given radius
+
 
         #center and scale the point cloud
         point_set = point_set - np.expand_dims(np.mean(point_set, axis = 0), 0) # center

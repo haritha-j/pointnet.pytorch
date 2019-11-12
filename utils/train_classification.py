@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--dataset', type=str, required=True, help="dataset path")
     parser.add_argument('--dataset_type', type=str, default='shapenet', help="dataset type shapenet|modelnet40")
     parser.add_argument('--feature_transform', action='store_true', help="use feature transform")
+    parser.add_argument('--holes', type=int, default=0)
+    parser.add_argument('--hole_radius', type=int, default=0)
 
     opt = parser.parse_args()
     print(opt)
@@ -50,14 +52,19 @@ def main():
         dataset = ShapeNetDataset(
             root=opt.dataset,
             classification=True,
-            npoints=opt.num_points)
+            npoints=opt.num_points,
+            holes = opt.holes,
+            hole_radius = opt.hole_radius)
 
         test_dataset = ShapeNetDataset(
             root=opt.dataset,
             classification=True,
             split='test',
             npoints=opt.num_points,
-            data_augmentation=True)
+            data_augmentation=True,
+            holes = opt.holes,
+            hole_radius = opt.hole_radius)
+            
     elif opt.dataset_type == 'modelnet40':
         dataset = ModelNetDataset(
             root=opt.dataset,
@@ -256,7 +263,7 @@ def main():
                 print('Train accuracy: {}/{} ({:.3f}%)'.format(accurate_labels, all_labels, accuracy))
                 outputfile.write("\n\n\n")
 
-        torch.save(classifier.state_dict(), '%s/cls_model_partial_ransac_lr_0001_partial_radius_1_siamese1024_%d.pth' % (opt.outf, epoch))
+        torch.save(classifier.state_dict(), '%s/cls_model_lr_0001_shapenet_siamese4096_%d.pth' % (opt.outf, epoch))
 """
     total_correct = 0
     total_testset = 0
