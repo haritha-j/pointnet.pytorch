@@ -70,7 +70,7 @@ class ShapeNetDataset(data.Dataset):
         self.data_augmentation = data_augmentation
         self.classification = classification
         self.seg_classes = {}
-        awlf.holes=holes
+        self.holes=holes
 
         print ( "root")
         print (self.root)
