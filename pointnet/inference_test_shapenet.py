@@ -122,7 +122,7 @@ class ShapeNetDatasetEval(data.Dataset):
 
 
     #return one processed point cloud from triplet, cloud should be in 0->32
-    def get_single_cloud(self, index, cloud, augmentation):
+    def get_single_cloud(self, index, cloud):
         fn = self.triplet_set[index][cloud]
         #cls = self.classes[self.datapath[index][0]]
         point_set = np.loadtxt(fn[1]).astype(np.float32)
@@ -139,7 +139,7 @@ class ShapeNetDatasetEval(data.Dataset):
         dist = np.max(np.sqrt(np.sum(point_set ** 2, axis = 1)),0)
         point_set = point_set / dist #scale
 
-        if augmentation:
+        if self.data_augmentation:
             theta = np.random.uniform(0,np.pi*2)
             rotation_matrix = np.array([[np.cos(theta), -np.sin(theta)],[np.sin(theta), np.cos(theta)]])
             point_set[:,[0,2]] = point_set[:,[0,2]].dot(rotation_matrix) # random rotation
@@ -160,9 +160,9 @@ class ShapeNetDatasetEval(data.Dataset):
         point_sets = []
         for i in range (self.batch_size+1):
             if i ==0:
-                point_sets.append(self.get_single_cloud(index, i, True))
+                point_sets.append(self.get_single_cloud(index, i))
             else:
-                point_sets.append(self.get_single_cloud(index, i, True))
+                point_sets.append(self.get_single_cloud(index, i))
         
         point_sets = torch.stack(point_sets)
         #target = self.target_set[index]
