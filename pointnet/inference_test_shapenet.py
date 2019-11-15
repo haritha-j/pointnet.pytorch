@@ -275,8 +275,8 @@ def main():
         correct_count = 0
         top3_count = 0
         total = 0
-        for count in range(len(test_dataset)/num_classes):
-            print(count)
+        for count in range(int(len(test_dataset)/num_classes)):
+            #print(count)
             #print ("train accurate labels, positive and negative ", accurate_labels_positive,accurate_labels_negative)
             #pick a random batch from the test dataset
             points = []
@@ -285,8 +285,9 @@ def main():
             #create 32 pairs, where the first one contains a positive example and the rest are negative
             for j in range(1,batch_size+1):
                 point_cloud_pair = []
-                point_cloud_pair.append(test_dataset[count][0])
-                point_cloud_pair.append(test_dataset[count][j])
+                #print(class_id*int(len(test_dataset)/num_classes) + count)
+                point_cloud_pair.append(test_dataset[class_id*int(len(test_dataset)/num_classes) + count][0])
+                point_cloud_pair.append(test_dataset[class_id*int(len(test_dataset)/num_classes) + count][j])
                 points.append(torch.stack(point_cloud_pair))
                 if j == 1:
                     target.append([1])
@@ -322,13 +323,13 @@ def main():
             #correct = pred_choice.eq(target.data).cpu().sum()
             #print('[%d: %d/%d] %s loss: %f accuracy: %f' % (epoch, i, num_batch, blue('test'), loss.item(), correct.item()/float(opt.batchSize)))
 
-            print ("pred")
-            print (pred)
+            #print ("pred")
+            #print (pred)
             
             
             result = torch.max(pred, dim=1)
-            print("result")
-            print(result.indices)
+            #print("result")
+            #print(result.indices)
             #of all the positive results, pick the highest positive result and the top 3 positive results
             #we expect the top result to be the 0th index
             positives = []
@@ -342,8 +343,8 @@ def main():
             
 
             if len(positives)>0:
-                print("max")
-                print(positives)
+                #print("max")
+                #print(positives)
                 max_index = positive_indices[positives.index(max(positives))]
 
                 del positive_indices[positives.index(max(positives))]
@@ -354,17 +355,17 @@ def main():
                     del positives[positives.index(max(positives))]
                     if (len(positives)>0):
                         max_index3 = positive_indices[positives.index(max(positives))]
-                print ("top 3")
-                print(max_index, max_index2, max_index3)
-            else:
-                print("no result found")
+                #print ("top 3")
+                #print(max_index, max_index2, max_index3)
+            #else:
+                #print("no result found")
 
             if (max_index ==0):
                 correct_count+=1
-                print("result correct")
+                #print("result correct")
             if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
                 top3_count +=1
-                print("result in top3")
+                #print("result in top3")
             total+=1
             #accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
             #accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
@@ -388,7 +389,7 @@ def main():
         print(correct_count)
         print("top3")
         print(top3_count)
-        print ("Accuracy")
+        print ("Accuracy for class ", class_id)
         print(100. * float(correct_count)/float(total))
         print ("Top 3 Accuracy")
         print(100. * float(top3_count)/float(total))
