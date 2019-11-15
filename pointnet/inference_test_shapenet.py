@@ -287,7 +287,7 @@ def main():
                 #create 32 pairs, where the first one contains a positive example and the rest are negative
                 for j in range(1,batch_size+1):
                     point_cloud_pair = []
-                    print (class_id*6*8 + example*8 + count)
+                    #print (class_id*6*8 + example*8 + count)
                     point_cloud_pair.append(test_dataset[class_id*6*8 + example*8 + count][0])
                     point_cloud_pair.append(test_dataset[class_id*6*8 + example*8 + count][j])
                     points.append(torch.stack(point_cloud_pair))
