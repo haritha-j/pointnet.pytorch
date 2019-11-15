@@ -89,11 +89,11 @@ class PointNetfeat(nn.Module):
         super(PointNetfeat, self).__init__()
         self.stn = STN3d()
         self.conv1 = torch.nn.Conv1d(3, 64, 1)
-        self.conv2 = torch.nn.Conv1d(64, 256, 1)
-        self.conv3 = torch.nn.Conv1d(256, 4096, 1)
+        self.conv2 = torch.nn.Conv1d(64, 128, 1)
+        self.conv3 = torch.nn.Conv1d(128, 1024, 1)
         self.bn1 = nn.BatchNorm1d(64)
-        self.bn2 = nn.BatchNorm1d(256)
-        self.bn3 = nn.BatchNorm1d(4096)
+        self.bn2 = nn.BatchNorm1d(128)
+        self.bn3 = nn.BatchNorm1d(1024)
         self.global_feat = global_feat
         self.feature_transform = feature_transform
         if self.feature_transform:
@@ -119,11 +119,11 @@ class PointNetfeat(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         x = self.bn3(self.conv3(x))
         x = torch.max(x, 2, keepdim=True)[0]
-        x = x.view(-1, 4096)
+        x = x.view(-1, 1024)
         if self.global_feat:
             return x, trans, trans_feat
         else:
-            x = x.view(-1, 4096, 1).repeat(1, 1, n_pts)
+            x = x.view(-1, 1024, 1).repeat(1, 1, n_pts)
             return torch.cat([x, pointfeat], 1), trans, trans_feat
 
 class PointNetCls(nn.Module):
@@ -173,7 +173,7 @@ class pointNetSiamese(nn.Module):
     def __init__(self, k=2, feature_transform=False):
         super(pointNetSiamese, self).__init__()
         self.cls = PointNetCls()
-        self.linear = nn.Linear(4096, 2) #why is there two ouputs instead of one (paper has one output)?
+        self.linear = nn.Linear(1024, 2) #why is there two ouputs instead of one (paper has one output)?
 
     def forward(self, data):
         #data contains the two inputs

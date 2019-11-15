@@ -270,7 +270,7 @@ def main():
     classifier = classifier.eval()
 
     #num_batch = len(dataset) / opt.batchSize
-    for class_id in range(4):
+    for class_id in range(6):
         class_accuracy=0
         class_top3 = 0
         for example in range (8):
@@ -287,8 +287,9 @@ def main():
                 #create 32 pairs, where the first one contains a positive example and the rest are negative
                 for j in range(1,batch_size+1):
                     point_cloud_pair = []
-                    point_cloud_pair.append(test_dataset[count][0])
-                    point_cloud_pair.append(test_dataset[count][j])
+                    print (class_id*6*8 + example*8 + count)
+                    point_cloud_pair.append(test_dataset[class_id*6*8 + example*8 + count][0])
+                    point_cloud_pair.append(test_dataset[class_id*6*8 + example*8 + count][j])
                     points.append(torch.stack(point_cloud_pair))
                     if j == 1:
                         target.append([1])
@@ -390,9 +391,9 @@ def main():
             print(top3_count)
             print ("Accuracy for example ", example, "of  class ",class_id )
             print(100. * float(correct_count)/float(total))
-            class_accuracy += 100. * float(correct_count)/float(total)
+            class_accuracy += (100. * float(correct_count)/float(total))
             print ("Top 3 Accuracy")
-            class_top3 += 100. * float(top3_count)/float(total)
+            class_top3 += (100. * float(top3_count)/float(total))
             print(100. * float(top3_count)/float(total))
     
         print ("class accuracy for class ",class_id, " is ", class_accuracy/8)
