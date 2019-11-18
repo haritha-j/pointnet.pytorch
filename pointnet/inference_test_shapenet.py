@@ -274,13 +274,15 @@ def main():
 
     #num_batch = len(dataset) / opt.batchSize
 
-    
+    correct_count = 0
+    correct_count_ratio = 0
+    top3_count_ratio = 0
+    top3_count = 0
+    total = 0
     for test_class in range(num_classes):
-        correct_count = 0
-        top3_count = 0
-        total = 0
+
         for count in range(int(len(test_dataset)/num_classes)):
-            print(count)
+            #print(count)
             #print ("train accurate labels, positive and negative ", accurate_labels_positive,accurate_labels_negative)
             #pick a random batch from the test dataset
             points = []
@@ -289,8 +291,9 @@ def main():
             #create 32 pairs, where the first one contains a positive example and the rest are negative
             for j in range(1,batch_size+1):
                 point_cloud_pair = []
-                point_cloud_pair.append(test_dataset[count][0])
-                point_cloud_pair.append(test_dataset[count][j])
+                #print(test_class*int(len(test_dataset)/num_classes) + count)
+                point_cloud_pair.append(test_dataset[test_class*int(len(test_dataset)/num_classes) + count][0])
+                point_cloud_pair.append(test_dataset[test_class*int(len(test_dataset)/num_classes) + count][j])
                 points.append(torch.stack(point_cloud_pair))
                 if j == 1:
                     target.append([1])
@@ -337,19 +340,18 @@ def main():
             #we expect the top result to be the 0th index
             positives = []
             positive_indices = []
-            max_index, max_index2, max_index3 = -1, -1, -1
+            
             #print("res", result)
             for j in range (len(result.indices)):
                 if result.indices[j]==1:
                     positives.append(result.values[j].item())
                     positive_indices.append(j)
             
-
+            max_index, max_index2, max_index3 = -1, -1, -1
             if len(positives)>0:
                 print("max")
                 print(positives)
                 max_index = positive_indices[positives.index(max(positives))]
-
                 del positive_indices[positives.index(max(positives))]
                 del positives[positives.index(max(positives))]
                 if (len(positives)>0):
@@ -369,6 +371,33 @@ def main():
             if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
                 top3_count +=1
                 print("result in top3")
+
+
+            max_index, max_index2, max_index3 = -1, -1, -1
+            ratios = []
+            for k in range (len(pred)):
+                #print(pred[k][0])
+                #print(pred[k][1])
+                ratios.append(pred[k][1].item()/pred[k][0].item())
+            
+            print("ratios ", ratios[0])
+
+            max_index = ratios.index(max(ratios))
+
+            ratios[max_index] = -1
+            max_index2 = ratios.index(max(ratios))
+            ratios[max_index2] = -1
+            max_index3 = ratios.index(max(ratios))
+            print (max_index, max_index2, max_index3)
+
+            if (max_index ==0):
+                correct_count_ratio+=1
+                print("result correct")
+            if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
+                top3_count_ratio +=1
+                print("result in top3")
+
+            print("\n")
             total+=1
             #accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
             #accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
@@ -386,17 +415,20 @@ def main():
             #outputfile.write("\n\n\n")
 
             #torch.save(classifier.state_dict(), '%s/cls_model_partial_ransac_lr_0001_partial_radius_1_parallel_%d.pth' % (opt.outf, epoch))
-        print ("total")
-        print(total)
-        print("Correct")
-        print(correct_count)
-        print("top3")
-        print(top3_count)
-        print ("Accuracy for class ", test_class)
-        print(100. * float(correct_count)/float(total))
-        print ("Top 3 Accuracy")
-        print(100. * float(top3_count)/float(total))
-    
+    print ("total")
+    print(total)
+    print("Correct")
+    print(correct_count)
+    print("top3")
+    print(top3_count)
+    print ("Accuracy for class ", test_class)
+    print(100. * float(correct_count)/float(total))
+    print ("Top 3 Accuracy")
+    print(100. * float(top3_count)/float(total))
+    print ("Accuracy for class ", test_class)
+    print(100. * float(correct_count_ratio)/float(total))
+    print ("Top 3 Accuracy")
+    print(100. * float(top3_count_ratio)/float(total))    
     
     #print("final accuracy")
     #print(count)
