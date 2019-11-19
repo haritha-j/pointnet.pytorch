@@ -273,9 +273,13 @@ def main():
     for class_id in range(6):
         class_accuracy=0
         class_top3 = 0
+        class_accuracy_ratio = 0
+        class_top3_ratio = 0
         for example in range (8):
             correct_count = 0
             top3_count = 0
+            correct_count_ratio = 0
+            top3_count_ratio = 0
             total = 0
             for count in range(8):
                 #print(count)
@@ -366,6 +370,36 @@ def main():
                 if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
                     top3_count +=1
                     #print("result in top3")
+
+
+
+
+                max_index, max_index2, max_index3 = -1, -1, -1
+                ratios = []
+                for k in range (len(pred)):
+                    #print(pred[k][0])
+                    #print(pred[k][1])
+                    ratios.append(pred[k][1].item()/pred[k][0].item())
+                
+                #print("ratios ", ratios[0])
+
+                max_index = ratios.index(max(ratios))
+
+                ratios[max_index] = -1
+                max_index2 = ratios.index(max(ratios))
+                ratios[max_index2] = -1
+                max_index3 = ratios.index(max(ratios))
+                #print (max_index, max_index2, max_index3)
+
+                if (max_index ==0):
+                    correct_count_ratio+=1
+                    #print("result correct")
+                if ((max_index == 0) or (max_index2 == 0) or (max_index3 == 0)):
+                    top3_count_ratio +=1
+                    #print("result in top3")
+
+                #print("\n")
+        
                 total+=1
                 #accurate_test_labels_positive = torch.sum(torch.argmax(pred_positive, dim=1) == target_positive).cpu()
                 #accurate_test_labels_negative = torch.sum(torch.argmax(pred_negative, dim=1) == target_negative).cpu()
@@ -395,9 +429,22 @@ def main():
             print ("Top 3 Accuracy")
             class_top3 += (100. * float(top3_count)/float(total))
             print(100. * float(top3_count)/float(total))
+            
+            print("ratio metric")
+            print ("Accuracy for example ", example, "of  class ",class_id )
+            print(100. * float(correct_count_ratio)/float(total))
+            class_accuracy_ratio += (100. * float(correct_count_ratio)/float(total))
+            print ("Top 3 Accuracy")
+            class_top3_ratio += (100. * float(top3_count_ratio)/float(total))
+            print(100. * float(top3_count_ratio)/float(total))
+
+
+            
     
         print ("class accuracy for class ",class_id, " is ", class_accuracy/8)
         print ("class top3 accuracy for class ",class_id, " is ", class_top3/8,)
+        print ("class accuracy for class using ratio ",class_id, " is ", class_accuracy_ratio/8)
+        print ("class top3 accuracy for class using ratio ",class_id, " is ", class_top3_ratio/8,)
 
     #print("final accuracy")
     #print(count)
